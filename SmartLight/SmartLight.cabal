@@ -1,8 +1,9 @@
 name:           SmartLight
 version:        0.1
-cabal-version:  >=1.2
+cabal-version:  >= 1.2
 build-type:     Simple
-author:         root
+author:         Federico Sawady, Damian Lattenero
+maintainer:     Federico Sawady
 
 library
   hs-source-dirs:  src

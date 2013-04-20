@@ -18,10 +18,10 @@ data Game = Game {
 }
 
 data GameLoop = GameLoop {
-    _onInit       :: IO Game,
-    _onGameLogic  :: Game  -> Event -> IO Game,
-    _onRender     :: Game  -> IO Game,
-    _onCleanUp    :: Game  -> IO Game
+    _onInit       :: Game -> IO Game,
+    _onGameLogic  :: Game -> Event -> IO Game,
+    _onRender     :: Game -> IO (),
+    _onCleanUp    :: Game -> IO ()
 }
 
 loadImage :: FilePath -> IO Surface
@@ -35,7 +35,6 @@ applySurface :: Int -> Int -> Surface -> Surface -> IO ()
 applySurface x y source dest = do
     _ <- SDL.blitSurface source Nothing dest (Just rect)
     return ()
-    
     where rect = Rect x y 0 0
     
 type ResourceName = String
@@ -53,30 +52,49 @@ events f game = do
   event <- SDL.pollEvent
   case event of
     NoEvent -> return game
+    Quit    -> return game { _isRunning = False }
     _       -> f game event >>= events f
     
 onSurface :: Surface -> IO () -> IO ()
 onSurface s c = do c; SDL.flip s
 
 mainLoop :: GameLoop -> Game -> IO ()
-mainLoop gl g =
-    when (_isRunning g) $ do
-        newG <- events (_onGameLogic gl) g >>= _onRender gl
+mainLoop gl g = do
+    g2 <- _onInit gl g
+    when (_isRunning g2) $ do
+        newG <- events (_onGameLogic gl) g2
+        _onRender gl newG
+        SDL.flip . _surface . _screen $ newG
+        SDL.delay 1000
         mainLoop gl newG
         
 onExecute :: GameLoop -> IO ()
 onExecute gl = do
     SDL.init [SDL.InitEverything]
-    surface <- SDL.setVideoMode 640 480 32 [SWSurface]
+    surfDisplay <- SDL.setVideoMode 640 480 32 [SDL.HWSurface, SDL.DoubleBuf]
     SDL.setCaption "" ""
-    SDL.flip surface
-    SDL.delay 5000
+    let game = newGame . Screen 640 480 32 $ surfDisplay
+    mainLoop gl game    
     SDL.quit
     
-abnormalQuit :: IOException -> IO ()    
+newGame :: Screen -> Game
+newGame s = Game {
+    _screen       = s,
+    _isRunning    = True
+}
+    
+dummyGameLoop :: GameLoop
+dummyGameLoop     = GameLoop {
+    _onInit       = return,
+    _onGameLogic  = \newG _ -> return newG,
+    _onRender     = \_ -> return (),
+    _onCleanUp    = \_ -> return ()
+} 
+    
+abnormalQuit :: IOException -> IO ()
 abnormalQuit e = do
     print e
     SDL.quit
 
 main :: IO ()
-main  = Control.Exception.catch (onExecute undefined) abnormalQuit
+main  = Control.Exception.catch (onExecute dummyGameLoop) abnormalQuit

@@ -5,11 +5,16 @@ import Graphics.UI.SDL.Image as Image
 import Control.Exception
 import Control.Monad (when)
 
-data Screen = Screen {
+data WindowData = WindowData {
   _width   :: Int,
   _height  :: Int,
   _bpp     :: Int,
-  _surface :: Surface
+  _title   :: String
+}
+
+data Screen = Screen {
+  _screenData :: WindowData,
+  _surface    :: Surface
 }
 
 data Game = Game {
@@ -19,7 +24,7 @@ data Game = Game {
 
 data GameLoop = GameLoop {
     _onInit       :: Game -> IO Game,
-    _onGameLogic  :: Game -> Event -> IO Game,
+    _onGameLogic  :: Game -> Event -> Game,
     _onRender     :: Game -> IO (),
     _onCleanUp    :: Game -> IO ()
 }
@@ -47,13 +52,12 @@ type ResourceName = String
 
 -- cleanup    
 
-events :: (Game -> Event -> IO Game) -> Game -> IO Game
-events f game = do
+events :: (Game -> Event -> Game) -> Game -> IO Game
+events gameLogic game = do
   event <- SDL.pollEvent
   case event of
     NoEvent -> return game
-    Quit    -> return game { _isRunning = False }
-    _       -> f game event >>= events f
+    _       -> events gameLogic (gameLogic game event)
     
 onSurface :: Surface -> IO () -> IO ()
 onSurface s c = do c; SDL.flip s
@@ -68,28 +72,44 @@ mainLoop gl g = do
         SDL.delay 1000
         mainLoop gl newG
         
-onExecute :: GameLoop -> IO ()
-onExecute gl = do
+createScreen :: WindowData -> IO Screen
+createScreen w = do
+     screenSurface <- SDL.setVideoMode (_width w) (_height w) (_bpp w) [SDL.HWSurface, SDL.DoubleBuf]
+     SDL.setCaption (_title w) (_title w)
+     return $ Screen w screenSurface
+        
+onExecute :: WindowData -> GameLoop -> IO ()
+onExecute w gl = do
     SDL.init [SDL.InitEverything]
-    surfDisplay <- SDL.setVideoMode 640 480 32 [SDL.HWSurface, SDL.DoubleBuf]
-    SDL.setCaption "" ""
-    let game = newGame . Screen 640 480 32 $ surfDisplay
-    mainLoop gl game    
+    screen <- createScreen w
+    _onInit  gl (newGame screen) >>= mainLoop gl
     SDL.quit
+    
+executeGame :: WindowData -> GameLoop -> IO ()
+executeGame w g = Control.Exception.catch (onExecute w g) abnormalQuit
+    
+finish :: Game -> Game
+finish g = g { _isRunning = False }    
     
 newGame :: Screen -> Game
 newGame s = Game {
     _screen       = s,
     _isRunning    = True
 }
-    
-dummyGameLoop :: GameLoop
-dummyGameLoop     = GameLoop {
+
+newGameLoop :: GameLoop
+newGameLoop = GameLoop {
     _onInit       = return,
-    _onGameLogic  = \newG _ -> return newG,
+    _onGameLogic  = defaultLogic,
     _onRender     = \_ -> return (),
     _onCleanUp    = \_ -> return ()
-} 
+}
+
+defaultLogic :: Game -> Event -> Game
+defaultLogic game ev =
+    case ev of
+        Quit -> finish game
+        _    -> game         
     
 abnormalQuit :: IOException -> IO ()
 abnormalQuit e = do
@@ -97,4 +117,4 @@ abnormalQuit e = do
     SDL.quit
 
 main :: IO ()
-main  = Control.Exception.catch (onExecute dummyGameLoop) abnormalQuit
+main  = executeGame (WindowData 640 480 32 "SDL") newGameLoop

@@ -13,6 +13,10 @@ library
 executable SmartLight
   hs-source-dirs:  src
   main-is:         Main.hs
-  build-depends:   base >= 4
+  build-depends:   
+                   base >= 4,
+                   containers,
+                   SDL-image,
+                   SDL
   ghc-options:     -Wall
 

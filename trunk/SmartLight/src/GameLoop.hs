@@ -27,6 +27,9 @@ events gameLogic game = do
     NoEvent -> return game
     _       -> gameLogic event game >>= events gameLogic
     
+extends :: Monad m => (t -> c -> m c) -> t -> t -> c -> m c
+extends method g h = method g >=> method h
+
 defaultGameLoop :: GameLoop
 defaultGameLoop = GameLoop {
     _onInit       = defaultInit,
@@ -37,10 +40,10 @@ defaultGameLoop = GameLoop {
 
 newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
-    _onInit       = _onInit defaultGameLoop >=> _onInit gl,
-    _onGameLogic  = \e -> _onGameLogic defaultGameLoop e >=> _onGameLogic gl e,
-    _onRender     = _onRender defaultGameLoop >=> _onRender gl,
-    _onCleanUp    = _onCleanUp defaultGameLoop >=> _onCleanUp gl
+    _onInit       = extends _onInit defaultGameLoop gl,
+    _onGameLogic  = \e -> extends (`_onGameLogic` e) defaultGameLoop gl,
+    _onRender     = extends _onRender defaultGameLoop gl,
+    _onCleanUp    = extends _onCleanUp defaultGameLoop gl
 }
 
 defaultInit :: Game -> IO Game

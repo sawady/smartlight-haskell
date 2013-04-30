@@ -27,19 +27,12 @@ events gameLogic game = do
     NoEvent -> return game
     _       -> events gameLogic (gameLogic game event)
     
-onExecute :: WindowData -> GameLoop -> IO ()
-onExecute w gl = do
-    SDL.init [SDL.InitEverything]
-    screen <- createScreen w
-    _onInit  gl (newGame screen) >>= mainLoop gl
-    SDL.quit
-    
 newGameLoop :: GameLoop
 newGameLoop = GameLoop {
     _onInit       = return,
     _onGameLogic  = defaultLogic,
-    _onRender     = \_ -> return (),
-    _onCleanUp    = \_ -> return ()
+    _onRender     = defaultRender,
+    _onCleanUp    = const (return ())
 }
 
 defaultLogic :: Game -> Event -> Game
@@ -47,21 +40,30 @@ defaultLogic game ev =
     case ev of
         Quit -> finish game
         _    -> game
+        
+defaultRender :: Game -> IO ()
+defaultRender g = SDL.flip . _surface . _screen $ g   
 
 abnormalQuit :: IOException -> IO ()
 abnormalQuit e = do
     print e
     SDL.quit
-
+    
 mainLoop :: GameLoop -> Game -> IO ()
 mainLoop gl g = do
-    g2 <- _onInit gl g
-    when (_isRunning g2) $ do
-        newG <- events (_onGameLogic gl) g2
+    when (_isRunning g) $ do
+        newG <- events (_onGameLogic gl) g
         _onRender gl newG
-        SDL.flip . _surface . _screen $ newG
         SDL.delay 1000
         mainLoop gl newG
+    SDL.quit
+        
+onExecute :: WindowData -> GameLoop -> IO ()
+onExecute w gl = 
+    SDL.init [SDL.InitEverything] >>
+    createScreen w >>= 
+    _onInit gl . newGame >>= 
+    mainLoop gl
 
 executeGame :: WindowData -> GameLoop -> IO ()
 executeGame w g = Control.Exception.catch (onExecute w g) abnormalQuit

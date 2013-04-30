@@ -7,7 +7,9 @@ maintainer:     Federico Sawady
 
 library
   hs-source-dirs:  src
-  build-depends:   base >= 4
+  build-depends:   
+                   base >= 4,
+                   transformers
   ghc-options:     -Wall
   other-modules:   
                    Screen,
@@ -23,7 +25,8 @@ executable SmartLight
                    base >= 4,
                    containers,
                    SDL-image,
-                   SDL
+                   SDL,
+                   transformers
   ghc-options:     -Wall
   other-modules:   
                    Screen,

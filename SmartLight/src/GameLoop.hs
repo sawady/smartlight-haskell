@@ -3,8 +3,8 @@ module GameLoop where
 import Screen
 import Game
 import Graphics.UI.SDL as SDL
-import Control.Exception
 import Control.Monad (when, liftM)
+import Control.Exception (catch, IOException)
 
 data GameLoop = GameLoop {
     _onInit       :: Game -> IO Game,
@@ -44,12 +44,6 @@ defaultLogic game ev =
 defaultRender :: Game -> IO ()
 defaultRender g = SDL.flip . _surface . _screen $ g
     
-
-abnormalQuit :: IOException -> IO ()
-abnormalQuit e = do
-    print e
-    SDL.quit
-    
 mainLoop :: GameLoop -> Game -> IO ()
 mainLoop gl g = when (_isRunning g) $ do
   newG <- events (_onGameLogic gl) g
@@ -57,11 +51,16 @@ mainLoop gl g = when (_isRunning g) $ do
   SDL.delay 1000
   mainLoop gl newG
         
-onExecute :: WindowData -> GameLoop -> IO ()
-onExecute w gl = do
-    SDL.init [SDL.InitEverything]
-    liftM newGame (createScreen w) >>= _onInit gl  >>= mainLoop gl
-    SDL.quit
-
 executeGame :: WindowData -> GameLoop -> IO ()
-executeGame w g = Control.Exception.catch (onExecute w g) abnormalQuit
+executeGame w gl = Control.Exception.catch execute abnormalQuit
+    where
+        execute :: IO ()
+        execute = do
+            SDL.init [SDL.InitEverything]
+            liftM newGame (createScreen w) >>= _onInit gl  >>= mainLoop gl
+            SDL.quit
+        
+        abnormalQuit :: IOException -> IO ()
+        abnormalQuit e = do
+            print e
+            SDL.quit            

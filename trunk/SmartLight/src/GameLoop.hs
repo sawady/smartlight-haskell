@@ -39,7 +39,7 @@ newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
     _onInit       = _onInit defaultGameLoop >=> _onInit gl,
     _onGameLogic  = \e -> _onGameLogic defaultGameLoop e >=> _onGameLogic gl e,
-    _onRender     = _onRender defaultGameLoop >=> _onRender gl ,
+    _onRender     = _onRender defaultGameLoop >=> _onRender gl,
     _onCleanUp    = _onCleanUp defaultGameLoop >=> _onCleanUp gl
 }
 

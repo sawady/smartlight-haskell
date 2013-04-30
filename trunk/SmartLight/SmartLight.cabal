@@ -2,13 +2,19 @@ name:           SmartLight
 version:        0.1
 cabal-version:  >= 1.2
 build-type:     Simple
-author:         Federico Sawady, Damian Lattenero
+author:         Federico Sawady
 maintainer:     Federico Sawady
 
 library
   hs-source-dirs:  src
   build-depends:   base >= 4
   ghc-options:     -Wall
+  other-modules:   
+                   Screen,
+                   Game,
+                   GameLoop,
+                   Image,
+                   SmartLight
 
 executable SmartLight
   hs-source-dirs:  src
@@ -19,4 +25,10 @@ executable SmartLight
                    SDL-image,
                    SDL
   ghc-options:     -Wall
+  other-modules:   
+                   Screen,
+                   Game,
+                   GameLoop,
+                   Image,
+                   SmartLight
 

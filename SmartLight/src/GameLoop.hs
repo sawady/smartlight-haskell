@@ -39,7 +39,7 @@ defaultGameLoop = GameLoop {
                 
         defaultRender :: Game -> IO Game
         defaultRender g = do
-            SDL.flip . _surface . _screen $ g
+            SDL.flip . _screenSurface . _screen $ g
             return g
                 
         defaultCleanUp :: Game -> IO Game
@@ -49,7 +49,7 @@ newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
     _onInit       = extends _onInit defaultGameLoop gl,
     _onGameLogic  = \e -> extends (`_onGameLogic` e) defaultGameLoop gl,
-    _onRender     = extends _onRender defaultGameLoop gl,
+    _onRender     = extends _onRender gl defaultGameLoop,
     _onCleanUp    = extends _onCleanUp defaultGameLoop gl
 }
     where

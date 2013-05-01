@@ -3,7 +3,9 @@ module Image where
 import Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Image as Image
 
-type ResourceName = String
+data Image = Image {
+    _surface   :: Surface
+}
 
 loadImage :: FilePath -> IO Surface
 loadImage file = do 

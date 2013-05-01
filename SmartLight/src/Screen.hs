@@ -10,8 +10,8 @@ data WindowData = WindowData {
 }
 
 data Screen = Screen {
-  _screenData :: WindowData,
-  _surface    :: Surface
+  _screenData    :: WindowData,
+  _screenSurface :: Surface
 }
 
 createScreen :: WindowData -> IO Screen
@@ -19,6 +19,3 @@ createScreen w = do
      screenSurface <- SDL.setVideoMode (_width w) (_height w) (_bpp w) [SDL.HWSurface, SDL.DoubleBuf]
      SDL.setCaption (_title w) (_title w)
      return $ Screen w screenSurface
-     
-flip :: Surface -> IO ()
-flip = SDL.flip     

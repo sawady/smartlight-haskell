@@ -17,7 +17,3 @@ applySurface x y source dest = do
     _ <- SDL.blitSurface source Nothing dest (Just rect)
     return ()
     where rect = Rect x y 0 0
-    
-onSurface :: Surface -> IO () -> IO ()
-onSurface s c = do c; SDL.flip s
-    

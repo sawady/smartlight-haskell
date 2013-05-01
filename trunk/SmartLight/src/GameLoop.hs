@@ -20,16 +20,6 @@ data GameLoop = GameLoop {
 -- }
 -- cleanup   
 
-events :: (Event -> Game -> IO Game) -> Game -> IO Game
-events gameLogic game = do
-  event <- SDL.pollEvent
-  case event of
-    NoEvent -> return game
-    _       -> gameLogic event game >>= events gameLogic
-    
-extends :: Monad m => (t -> c -> m c) -> t -> t -> c -> m c
-extends method g h = method g >=> method h
-
 defaultGameLoop :: GameLoop
 defaultGameLoop = GameLoop {
     _onInit       = defaultInit,
@@ -37,7 +27,24 @@ defaultGameLoop = GameLoop {
     _onRender     = defaultRender,
     _onCleanUp    = defaultCleanUp
 }
-
+    where
+        defaultInit :: Game -> IO Game
+        defaultInit = return
+        
+        defaultLogic :: Event -> Game -> IO Game
+        defaultLogic ev game = return $
+            case ev of
+                Quit -> finish game
+                _    -> game
+                
+        defaultRender :: Game -> IO Game
+        defaultRender g = do
+            SDL.flip . _surface . _screen $ g
+            return g
+                
+        defaultCleanUp :: Game -> IO Game
+        defaultCleanUp = return
+       
 newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
     _onInit       = extends _onInit defaultGameLoop gl,
@@ -45,30 +52,25 @@ newGameLoop gl = GameLoop {
     _onRender     = extends _onRender defaultGameLoop gl,
     _onCleanUp    = extends _onCleanUp defaultGameLoop gl
 }
-
-defaultInit :: Game -> IO Game
-defaultInit = return
-
-defaultCleanUp :: Game -> IO Game
-defaultCleanUp = return
-
-defaultLogic :: Event -> Game -> IO Game
-defaultLogic ev game = return $
-    case ev of
-        Quit -> finish game
-        _    -> game
-        
-defaultRender :: Game -> IO Game
-defaultRender g = do
-    SDL.flip . _surface . _screen $ g
-    return g
-    
+    where
+        extends :: Monad m => (t -> c -> m c) -> t -> t -> c -> m c
+        extends method g h = method g >=> method h
+   
 mainLoop :: GameLoop -> Game -> IO Game
 mainLoop gl g = if _isRunning g then
   do newG <- events (_onGameLogic gl) g >>= _onRender gl
      SDL.delay 1000
      mainLoop gl newG
   else return g
+  
+  where
+    events :: (Event -> Game -> IO Game) -> Game -> IO Game
+    events gameLogic game = do
+      event <- SDL.pollEvent
+      case event of
+        NoEvent -> return game
+        _       -> gameLogic event game >>= events gameLogic
+    
         
 executeGame :: WindowData -> GameLoop -> IO ()
 executeGame w gl = Control.Exception.catch execute abnormalQuit

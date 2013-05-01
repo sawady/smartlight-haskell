@@ -9,14 +9,19 @@ library
   hs-source-dirs:  src
   build-depends:   
                    base >= 4,
-                   transformers
+                   containers,
+                   SDL-image,
+                   SDL,
+                   containers,
+                   unordered-containers
   ghc-options:     -Wall
   other-modules:   
                    Screen,
                    Game,
                    GameLoop,
                    Image,
-                   SmartLight
+                   SmartLight,
+                   Entity
 
 executable SmartLight
   hs-source-dirs:  src
@@ -26,12 +31,14 @@ executable SmartLight
                    containers,
                    SDL-image,
                    SDL,
-                   transformers
+                   containers,
+                   unordered-containers
   ghc-options:     -Wall
   other-modules:   
                    Screen,
                    Game,
                    GameLoop,
                    Image,
-                   SmartLight
+                   SmartLight,
+                   Entity
 

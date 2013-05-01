@@ -65,10 +65,9 @@ defaultRender g = do
     
 mainLoop :: GameLoop -> Game -> IO Game
 mainLoop gl g = if _isRunning g then
-  do newG <- events (_onGameLogic gl) g
-     newG' <- _onRender gl newG
+  do newG <- events (_onGameLogic gl) g >>= _onRender gl
      SDL.delay 1000
-     mainLoop gl newG'
+     mainLoop gl newG
   else return g
         
 executeGame :: WindowData -> GameLoop -> IO ()

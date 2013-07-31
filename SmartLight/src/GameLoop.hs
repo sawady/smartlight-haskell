@@ -6,19 +6,19 @@ import Graphics.UI.SDL as SDL
 import Control.Monad (liftM, (>=>))
 import Control.Exception (catch, IOException)
 
+-- init
+-- while(running) {    
+--   gameLogic
+--   render
+-- }
+-- cleanup
+
 data GameLoop = GameLoop {
     _onInit       :: Game -> IO Game,
     _onGameLogic  :: Event -> Game -> IO Game,
     _onRender     :: Game -> IO Game,
     _onCleanUp    :: Game -> IO Game
 }
-
--- init
--- while(running) {    
---   gameLogic
---   render
--- }
--- cleanup   
 
 defaultGameLoop :: GameLoop
 defaultGameLoop = GameLoop {

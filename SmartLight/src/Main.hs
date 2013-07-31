@@ -2,15 +2,11 @@ module Main where
 
 import SmartLight
 
---myGameLoop = defaultGameLoop {
---    _onInit   = \g -> 
---    _onRender = \g -> 
---}
+data Symbols = X | O
 
-data Point  = Point  { x :: Double, y :: Double }
-    deriving (Show)
-data Circle = Circle { center :: Point, radius :: Double }
-    deriving (Show)
+type Board = [[Maybe Symbols]]
+
+data TicTacToe = TicTacToe
 
 main :: IO ()
 main  = executeGame (WindowData 640 480 32 "SDL") defaultGameLoop

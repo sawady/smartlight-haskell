@@ -19,3 +19,9 @@ applySurface x y source dest = do
     _ <- SDL.blitSurface source Nothing dest (Just rect)
     return ()
     where rect = Rect x y 0 0
+    
+applyPartialSurface :: Int -> Int -> Rect -> Surface -> Surface -> IO ()
+applyPartialSurface x y tileRect source dest = do
+    _ <- SDL.blitSurface source (Just tileRect)  dest (Just rect)
+    return ()
+    where rect = Rect x y 0 0

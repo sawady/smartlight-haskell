@@ -23,7 +23,8 @@ library
                    GameLoop,
                    Image,
                    SmartLight,
-                   Entity
+                   Entity,
+                   TicTacToe
 
 executable SmartLight
   hs-source-dirs:  src
@@ -44,5 +45,6 @@ executable SmartLight
                    GameLoop,
                    Image,
                    SmartLight,
-                   Entity
+                   Entity,
+                   TicTacToe
 

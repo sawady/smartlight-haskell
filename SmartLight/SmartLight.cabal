@@ -16,15 +16,17 @@ library
                    unordered-containers,
                    data-lens,
                    data-lens-template
+
   ghc-options:     -Wall
-  other-modules:   
-                   Screen,
+
+  exposed-modules:   
                    Game,
                    GameLoop,
                    Image,
+                   Screen,
                    SmartLight,
-                   Entity,
-                   TicTacToe
+                   GameEntity
+  other-modules:   Common
 
 executable SmartLight
   hs-source-dirs:  src
@@ -40,11 +42,12 @@ executable SmartLight
                    data-lens-template
   ghc-options:     -Wall
   other-modules:   
-                   Screen,
                    Game,
                    GameLoop,
                    Image,
+                   Screen,
                    SmartLight,
-                   Entity,
-                   TicTacToe
+                   Examples.TicTacToe.TicTacToe,
+                   Common,
+                   GameEntity
 

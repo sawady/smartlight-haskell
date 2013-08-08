@@ -34,8 +34,8 @@ newPartialImage s r = (newImage s) {
      _partialSurface = Just r
 }
 
-drawImage :: Int -> Int -> Surface -> Image -> IO ()
-drawImage x y dest source = do
+drawImage :: Int -> Int -> Image -> Surface -> IO ()
+drawImage x y source dest = do
        _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
        return ()
     where rect = Rect x y 0 0

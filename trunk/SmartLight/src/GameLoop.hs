@@ -3,7 +3,8 @@ module GameLoop where
 import Screen
 import Game
 import Graphics.UI.SDL as SDL
-import Control.Monad (liftM, (>=>))
+import Common
+import Control.Monad (liftM)
 import Control.Exception (catch, IOException)
 
 -- init
@@ -16,8 +17,8 @@ import Control.Exception (catch, IOException)
 data GameLoop = GameLoop {
     _onInit       :: Game -> IO Game,
     _onGameLogic  :: Event -> Game -> IO Game,
-    _onRender     :: Game -> IO Game,
-    _onCleanUp    :: Game -> IO Game
+    _onRender     :: Game -> IO (),
+    _onCleanUp    :: Game -> IO ()
 }
 
 defaultGameLoop :: GameLoop
@@ -37,28 +38,24 @@ defaultGameLoop = GameLoop {
                 Quit -> finish game
                 _    -> game
                 
-        defaultRender :: Game -> IO Game
-        defaultRender g = do
-            SDL.flip . _screenSurface . _screen $ g
-            return g
+        defaultRender :: Game -> IO ()
+        defaultRender = SDL.flip . _screenSurface . _screen
                 
-        defaultCleanUp :: Game -> IO Game
-        defaultCleanUp = return
+        defaultCleanUp :: Game -> IO ()
+        defaultCleanUp _ = return ()
        
 newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
-    _onInit       = extends _onInit defaultGameLoop gl,
-    _onGameLogic  = \e -> extends (`_onGameLogic` e) defaultGameLoop gl,
-    _onRender     = extends _onRender gl defaultGameLoop,
-    _onCleanUp    = extends _onCleanUp defaultGameLoop gl
+    _onInit       = extendsM _onInit defaultGameLoop gl,
+    _onGameLogic  = \e -> extendsM (`_onGameLogic` e) defaultGameLoop gl,
+    _onRender     = extendsM_ _onRender defaultGameLoop gl,
+    _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
 }
-    where
-        extends :: Monad m => (t -> c -> m c) -> t -> t -> c -> m c
-        extends method g h = method g >=> method h
    
 mainLoop :: GameLoop -> Game -> IO Game
 mainLoop gl g = if _isRunning g then
-  do newG <- events (_onGameLogic gl) g >>= _onRender gl
+  do newG <- events (_onGameLogic gl) g 
+     _onRender gl newG
      SDL.delay 1000
      mainLoop gl newG
   else return g

@@ -48,10 +48,18 @@ addToBoard = Map.insert
 
 ------------------------------------------------------
 
-chooseImageName :: Maybe Cell -> String
-chooseImageName Nothing  = "empty"
-chooseImageName (Just X) = "cross"
-chooseImageName (Just O) = "circle"
+toImageName :: Maybe Cell -> String
+toImageName Nothing  = "empty"
+toImageName (Just X) = "cross"
+toImageName (Just O) = "circle"
+
+boardToImageNames :: Board -> [[String]]
+boardToImageNames b = 
+    (map . map) toImageName (rows b)
+
+boardToImages :: Board -> Map.HashMap String Image -> [Image]
+boardToImages b imgs = 
+    (concatMap . map) (fromJust . (`Map.lookup` imgs)) (boardToImageNames b)
 
 ticTacToeInit :: IO [Image]
 ticTacToeInit = do
@@ -65,7 +73,11 @@ ticTacToeInit = do
 
 --ticTacToeLogic   = undefined
 --
---ticTacToeRender  = undefined
+
+ticTacToeRender :: Board -> Map.HashMap String Image -> Surface -> IO ()
+ticTacToeRender b s surf =
+    mapM_ (\((x,y), img) -> drawImage x y img surf) (zip gameCoords (boardToImages b s))
+      
 --
 --ticTacToeLoop :: GameLoop
 --ticTacToeLoop = newGameLoop $ defaultGameLoop {

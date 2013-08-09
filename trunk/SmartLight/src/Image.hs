@@ -7,7 +7,7 @@ import Data.Maybe
 data Image = Image {
     _surface        :: Surface,
     _partialSurface :: Maybe Rect
-}
+} deriving (Show)
 
 size :: Image -> (Int,Int)
 size img = if isNothing (_partialSurface img)
@@ -36,6 +36,6 @@ newPartialImage s r = (newImage s) {
 
 drawImage :: Int -> Int -> Image -> Surface -> IO ()
 drawImage x y source dest = do
-       _ <- SDL.blitSurface (_surface source) Nothing dest (Just rect)
+       _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
        return ()
     where rect = Rect x y 0 0

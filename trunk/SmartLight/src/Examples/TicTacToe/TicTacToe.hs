@@ -7,7 +7,7 @@ import Data.Maybe(isJust, fromJust)
 import SmartLight
 import Data.List
 
-data Cell = X | O deriving (Eq)
+data Cell = X | O deriving (Eq, Show)
 
 type Board = Map.HashMap (Int,Int) Cell
 
@@ -65,38 +65,40 @@ toImageName Nothing  = emptyImageName
 toImageName (Just X) = crossImageName
 toImageName (Just O) = circleImageName
 
-boardToImageNames :: Board -> [[String]]
+boardToImageNames :: Board -> [String]
 boardToImageNames b = 
-    (map . map) toImageName (rows b)
+    (concatMap . map) toImageName (rows b)
 
 boardToImages :: Board -> GameEntities -> [Image]
-boardToImages b imgs = map getCurrentImage $
-    (concatMap . map) (fromJust . (`Map.lookup` imgs)) (boardToImageNames b)
+boardToImages b imgs = 
+    map (getCurrentImage . fromJust . (`Map.lookup` imgs))
+        (boardToImageNames b)
 
 ticTacToeInit :: Game -> IO Game
 ticTacToeInit g = do
     
     counters <- loadImage "counters" "src/Examples/TicTacToe/resources/"
     
-    let onCounter offset = singleImageEntity $ 
+    let onCounter offset = singleImageEntity $
                             newPartialImage counters (Rect offset 0 138 140)
     
     let cellImages = zip imageNames (map onCounter [0,140,280])
     
     return (foldl' (Prelude.flip $ uncurry addEntity) g cellImages)
-                
 
 boardRender :: Board -> GameEntities -> Surface -> IO ()
-boardRender b ents surf =
-    mapM_ (\((x,y), img) -> drawImage ((x-1)*138) ((y-1)*140) img surf)
-          ( zip gameCoords $ boardToImages b ents )
+boardRender b ents surf = do
+    let toDraw = zip gameCoords $ boardToImages b ents
+    let drawImages ((x, y), img) = drawImage ((x - 1) * 138) ((y - 1) * 140) img surf
+    
+    mapM_ drawImages toDraw
   
 ticTacToeRender :: Game -> IO ()
 ticTacToeRender game = 
     boardRender emptyBoard (_entities game)
                            (_screenSurface . _screen $ game)
       
---
+
 ticTacToeLoop :: GameLoop
 ticTacToeLoop = newGameLoop $ defaultGameLoop {
       _onInit       = ticTacToeInit

@@ -1,9 +1,11 @@
 module Examples.TicTacToe.TicTacToe where
 
 import Graphics.UI.SDL as SDL
+
 import qualified Data.HashMap.Strict as Map
 import Data.Maybe(isJust, fromJust)
 import SmartLight
+import Data.List
 
 data Cell = X | O deriving (Eq)
 
@@ -48,43 +50,59 @@ addToBoard = Map.insert
 
 ------------------------------------------------------
 
+emptyImageName :: String
+emptyImageName = "empty"
+crossImageName :: String
+crossImageName = "cross"
+circleImageName :: String
+circleImageName = "circle"
+
+imageNames :: [String]
+imageNames = [emptyImageName, crossImageName, circleImageName]
+
 toImageName :: Maybe Cell -> String
-toImageName Nothing  = "empty"
-toImageName (Just X) = "cross"
-toImageName (Just O) = "circle"
+toImageName Nothing  = emptyImageName
+toImageName (Just X) = crossImageName
+toImageName (Just O) = circleImageName
 
 boardToImageNames :: Board -> [[String]]
 boardToImageNames b = 
     (map . map) toImageName (rows b)
 
-boardToImages :: Board -> Map.HashMap String Image -> [Image]
-boardToImages b imgs = 
+boardToImages :: Board -> GameEntities -> [Image]
+boardToImages b imgs = map getCurrentImage $
     (concatMap . map) (fromJust . (`Map.lookup` imgs)) (boardToImageNames b)
 
-ticTacToeInit :: IO [Image]
-ticTacToeInit = do
-    counters <- loadImage "counters"
+ticTacToeInit :: Game -> IO Game
+ticTacToeInit g = do
     
-    let emptyImage  = newPartialImage counters (Rect 0 0 138 140)
-    let crossImage  = newPartialImage counters (Rect 140 0 138 140)
-    let circleImage = newPartialImage counters (Rect 280 0 138 140)
+    counters <- loadImage "counters" "src/Examples/TicTacToe/resources/"
     
-    return [emptyImage, crossImage, circleImage]
+    let onCounter offset = singleImageEntity $ 
+                            newPartialImage counters (Rect offset 0 138 140)
+    
+    let cellImages = zip imageNames (map onCounter [0,140,280])
+    
+    return (foldl' (Prelude.flip $ uncurry addEntity) g cellImages)
+                
 
---ticTacToeLogic   = undefined
---
-
-ticTacToeRender :: Board -> Map.HashMap String Image -> Surface -> IO ()
-ticTacToeRender b s surf =
-    mapM_ (\((x,y), img) -> drawImage x y img surf) (zip gameCoords (boardToImages b s))
+boardRender :: Board -> GameEntities -> Surface -> IO ()
+boardRender b ents surf =
+    mapM_ (\((x,y), img) -> drawImage ((x-1)*138) ((y-1)*140) img surf)
+          ( zip gameCoords $ boardToImages b ents )
+  
+ticTacToeRender :: Game -> IO ()
+ticTacToeRender game = 
+    boardRender emptyBoard (_entities game)
+                           (_screenSurface . _screen $ game)
       
 --
---ticTacToeLoop :: GameLoop
---ticTacToeLoop = newGameLoop $ defaultGameLoop {
---    _onInit       = ticTacToeInit,
---    _onGameLogic  = ticTacToeLogic,
---    _onRender     = ticTacToeRender
---}
+ticTacToeLoop :: GameLoop
+ticTacToeLoop = newGameLoop $ defaultGameLoop {
+      _onInit       = ticTacToeInit
+--   , _onGameLogic  = ticTacToeLogic
+    , _onRender     = ticTacToeRender
+    }
 
---main :: IO ()
---main  = executeGame (WindowData 640 480 32 "SDL") ticTacToeLoop
+main :: IO ()
+main  = executeGame (WindowData 640 480 32 "SDL") ticTacToeLoop

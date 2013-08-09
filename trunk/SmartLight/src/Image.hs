@@ -16,9 +16,9 @@ size img = if isNothing (_partialSurface img)
     where s = _surface img
           r = fromJust (_partialSurface img)
 
-loadImage :: FilePath -> IO Surface
-loadImage file = do 
-    surfOld <- SDLImage.load ("resources/" ++ file ++ ".bmp") 
+loadImage :: FilePath -> FilePath -> IO Surface
+loadImage file src = do 
+    surfOld <- SDLImage.load (src ++ file ++ ".png")
     surfNew <- SDL.displayFormat surfOld
     SDL.freeSurface surfOld
     return surfNew
@@ -36,6 +36,6 @@ newPartialImage s r = (newImage s) {
 
 drawImage :: Int -> Int -> Image -> Surface -> IO ()
 drawImage x y source dest = do
-       _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
+       _ <- SDL.blitSurface (_surface source) Nothing dest (Just rect)
        return ()
     where rect = Rect x y 0 0

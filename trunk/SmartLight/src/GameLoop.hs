@@ -33,13 +33,15 @@ defaultGameLoop = GameLoop {
         defaultInit = return
         
         defaultLogic :: Event -> Game -> IO Game
-        defaultLogic ev game = return $
-            case ev of
-                Quit -> finish game
-                _    -> game
+        defaultLogic ev game =
+            return $
+                case ev of
+                    Quit -> finish game
+                    _    -> game
                 
         defaultRender :: Game -> IO ()
-        defaultRender = SDL.flip . _screenSurface . _screen
+        defaultRender g =
+            SDL.flip . _screenSurface . _screen $ g
                 
         defaultCleanUp :: Game -> IO ()
         defaultCleanUp _ = return ()
@@ -48,7 +50,7 @@ newGameLoop :: GameLoop -> GameLoop
 newGameLoop gl = GameLoop {
     _onInit       = extendsM _onInit defaultGameLoop gl,
     _onGameLogic  = \e -> extendsM (`_onGameLogic` e) defaultGameLoop gl,
-    _onRender     = extendsM_ _onRender defaultGameLoop gl,
+    _onRender     = extendsM_ _onRender gl defaultGameLoop,
     _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
 }
    
@@ -56,7 +58,7 @@ mainLoop :: GameLoop -> Game -> IO Game
 mainLoop gl g = if _isRunning g then
   do newG <- events (_onGameLogic gl) g 
      _onRender gl newG
-     SDL.delay 1000
+     SDL.delay 5
      mainLoop gl newG
   else return g
   

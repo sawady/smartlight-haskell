@@ -5,29 +5,30 @@ import Screen
 import GameEntity
 import Data.Lens.Template
 import Data.Lens.Common
---import Data.List
+import qualified Data.HashMap.Strict as Map
 
-type GameEntities = [GameEntity]
+type GameEntities   = Map.HashMap String GameEntity
+type GameEntityName = String
 
 data Game = Game {
     _isRunning  :: Bool,
-    _screen     :: Screen
---    _entities   :: GameEntities
+    _screen     :: Screen,
+    _entities :: GameEntities
 }
 
 $( makeLenses [''Game] )
 
---addEntity :: GameEntity -> Game -> Game
---addEntity e = entities ^%= (e:)
---
---removeEntity :: GameEntity -> Game -> Game
---removeEntity e = entities ^%= delete e
+addEntity :: GameEntityName -> GameEntity -> Game -> Game
+addEntity n e = entities ^%= Map.insert n e 
+
+removeEntity :: GameEntityName -> Game -> Game
+removeEntity e = entities ^%= Map.delete e
 
 newGame :: Screen -> Game
 newGame s = Game {
-    _screen        = s,
-    _isRunning     = True
---    _entities = []
+    _screen     = s,
+    _isRunning  = True,
+    _entities   = Map.empty
 }
 
 finish :: Game -> Game

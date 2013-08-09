@@ -11,7 +11,7 @@ import Common
 data GameEntity = GameEntity {
     _currentImage :: Int,
     _images       :: Map.IntMap Image
-}
+} deriving (Show)
 
 $( makeLenses [''GameEntity] )
 

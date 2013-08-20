@@ -9,6 +9,14 @@ data WindowData = WindowData {
   _title   :: String
 }
 
+newWindowData :: Int -> Int -> String -> WindowData
+newWindowData w h t = WindowData {
+    _width   = w
+  , _height  = h
+  , _bpp     = 32
+  , _title   = t
+}
+
 data Screen = Screen {
   _screenData    :: WindowData,
   _screenSurface :: Surface

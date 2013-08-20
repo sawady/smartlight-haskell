@@ -2,34 +2,42 @@
 module Game where
 
 import Screen
-import GameEntity
+import Image
 import Data.Lens.Template
 import Data.Lens.Common
 import qualified Data.HashMap.Strict as Map
+import Control.Monad (foldM)
 
-type GameEntities   = Map.HashMap String GameEntity
-type GameEntityName = String
-
-data Game = Game {
+data Game gameData = Game {
     _isRunning  :: Bool,
     _screen     :: Screen,
-    _entities :: GameEntities
+    _entities   :: Map.HashMap String Image,
+    _gameData   :: gameData
 }
 
 $( makeLenses [''Game] )
 
-addEntity :: GameEntityName -> GameEntity -> Game -> Game
+loadEntities :: [String] -> Game a -> IO (Game a)
+loadEntities xs g = foldM (flip loadEntity) g xs
+
+loadEntity :: String -> Game a -> IO (Game a)
+loadEntity n g = do
+    img <- loadImage n
+    return $ addEntity n (newImage img) g
+
+addEntity :: String -> Image -> Game a -> Game a
 addEntity n e = entities ^%= Map.insert n e 
 
-removeEntity :: GameEntityName -> Game -> Game
+removeEntity :: String -> Game a -> Game a
 removeEntity e = entities ^%= Map.delete e
 
-newGame :: Screen -> Game
-newGame s = Game {
+newGame :: Screen -> a -> Game a
+newGame s g = Game {
     _screen     = s,
     _isRunning  = True,
-    _entities   = Map.empty
+    _entities   = Map.empty,
+    _gameData   = g
 }
 
-finish :: Game -> Game
+finish :: Game a -> Game a
 finish = isRunning ^= False

@@ -15,13 +15,16 @@ size img = if isNothing (_partialSurface img)
               else (rectW r, rectH r)
     where s = _surface img
           r = fromJust (_partialSurface img)
-
-loadImage :: FilePath -> FilePath -> IO Surface
-loadImage file src = do 
-    surfOld <- SDLImage.load (src ++ file ++ ".png")
+          
+loadImageWithPath :: FilePath -> FilePath -> IO Surface          
+loadImageWithPath file srcFolder = do
+    surfOld <- SDLImage.load (srcFolder ++ file ++ ".png")
     surfNew <- SDL.displayFormat surfOld
     SDL.freeSurface surfOld
     return surfNew
+    
+loadImage :: FilePath -> IO Surface
+loadImage file = loadImageWithPath file "/resources"
 
 newImage :: Surface -> Image
 newImage s = Image {

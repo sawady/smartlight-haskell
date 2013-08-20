@@ -37,7 +37,7 @@ newImage :: Surface -> Rect -> Image
 newImage s r = Image {
       _surface        = s
     , _partialSurface = Nothing
-    , _center         = (rectX r - rectW r, rectH r - rectY r) 
+    , _center         = (rectW r `div` 2, rectH r `div` 2) 
     , _rect           = r
 }
 
@@ -51,4 +51,7 @@ drawImage x y source dest = do
        _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
        return ()
        
-       where rect = Rect x y 0 0
+       where
+         centerX = fst $ _center source
+         centerY = snd $ _center source
+         rect = Rect (x + 640 `div` 2 - centerX) (y + 480 `div` 2 - centerY) 0 0

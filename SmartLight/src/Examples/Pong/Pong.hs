@@ -23,9 +23,9 @@ data PongData = PongData {
 
 newPong :: PongData
 newPong = PongData {
-    _player1 = Player 10 (screenSizeY `div` 2) 0,
-    _player2 = Player (screenSizeX - 25) (screenSizeY `div` 2) 0,
-    _ball = Ball (screenSizeX `div` 2) (screenSizeY `div` 2)
+    _player1 = Player (20 - screenSizeX `div` 2) 0 0,
+    _player2 = Player (screenSizeX `div` 2 - 20) 0 0,
+    _ball = Ball 0 0
 }
 
 type PongGame = Game PongData

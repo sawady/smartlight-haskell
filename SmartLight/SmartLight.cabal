@@ -26,7 +26,10 @@ library
                    Screen,
                    SmartLight,
                    GameEntity
-  other-modules:   Common
+  other-modules:   
+                   Common,
+                   Examples.Pong.Pong,
+                   Events
 
 executable SmartLight
   hs-source-dirs:  src
@@ -49,5 +52,7 @@ executable SmartLight
                    SmartLight,
                    Examples.TicTacToe.TicTacToe,
                    Common,
-                   GameEntity
+                   GameEntity,
+                   Examples.Pong.Pong,
+                   Events
 

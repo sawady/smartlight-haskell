@@ -6,6 +6,8 @@ import Data.Maybe
 
 data Image = Image {
     _surface        :: Surface,
+    _center         :: (Int, Int),
+    _rect           :: Rect,
     _partialSurface :: Maybe Rect
 } deriving (Show)
 
@@ -17,28 +19,36 @@ size img = if isNothing (_partialSurface img)
           r = fromJust (_partialSurface img)
           
 loadImageWithPath :: FilePath -> FilePath -> IO Surface          
-loadImageWithPath file srcFolder = do
-    surfOld <- SDLImage.load (srcFolder ++ file ++ ".png")
-    surfNew <- SDL.displayFormat surfOld
-    SDL.freeSurface surfOld
-    return surfNew
+loadImageWithPath file srcFolder =
+    SDLImage.load (srcFolder ++ "/" ++ file ++ ".png")
+    
+-- old version
+--    surfOld <- SDLImage.load (srcFolder ++ "/" ++ file ++ ".png")
+--    surfNew <- SDL.displayFormat surfOld
+--    SDL.freeSurface surfOld    
+
+getArea :: Surface -> IO Rect
+getArea = getClipRect
     
 loadImage :: FilePath -> IO Surface
-loadImage file = loadImageWithPath file "/resources"
+loadImage file = loadImageWithPath file "./src/Examples/Pong/resources"
 
-newImage :: Surface -> Image
-newImage s = Image {
-    _surface        = s,
-    _partialSurface = Nothing
+newImage :: Surface -> Rect -> Image
+newImage s r = Image {
+      _surface        = s
+    , _partialSurface = Nothing
+    , _center         = (rectX r - rectW r, rectH r - rectY r) 
+    , _rect           = r
 }
 
 newPartialImage :: Surface -> Rect -> Image
-newPartialImage s r = (newImage s) {
-     _partialSurface = Just r
+newPartialImage s r = (newImage s r) {
+       _partialSurface = Just r
 }
 
 drawImage :: Int -> Int -> Image -> Surface -> IO ()
 drawImage x y source dest = do
        _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
        return ()
-    where rect = Rect x y 0 0
+       
+       where rect = Rect x y 0 0

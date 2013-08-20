@@ -10,6 +10,10 @@ keyDown k = KeyDown (Keysym k [] '0')
 keyUp :: SDLKey -> Event
 keyUp k = KeyUp (Keysym k [] '0')
 
+isKeyDown, isKeyUp :: SDLKey -> Event -> Bool
+isKeyDown k e = e == keyDown k
+isKeyUp   k e = e == keyUp   k
+
 mouseX :: Event -> Int
 mouseX (MouseMotion x _ _ _) = bitSize x
 mouseX _                     = error "not mouse"

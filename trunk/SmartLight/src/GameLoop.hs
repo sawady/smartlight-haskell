@@ -4,7 +4,7 @@ import Screen
 import Game
 import Graphics.UI.SDL as SDL
 import Common
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 import Control.Exception (catch, IOException)
 
 -- init
@@ -63,9 +63,16 @@ simpleGameLoop xs l d = newGameLoop $ defaultGameLoop {
 
 mainLoop :: GameLoop a -> Game a -> IO (Game a)
 mainLoop gl g = if _isRunning g then
-  do newG <- events (_onGameLogic gl) g
+  do 
+     newG <- events (_onGameLogic gl) g
      _onRender gl newG
-     SDL.delay 5
+     
+     ticks1 <- SDL.getTicks
+     when (ticks1 < 1000 `div` 10)
+        (do
+            ticks2 <- SDL.getTicks
+            SDL.delay (( 1000 `div` 10 ) - ticks2))
+
      mainLoop gl newG
   else return g
   

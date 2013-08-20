@@ -8,9 +8,11 @@ import Data.Lens.Common
 import qualified Data.HashMap.Strict as Map
 import Control.Monad (foldM)
 import Data.Maybe (fromMaybe)
+import Data.Word
 
 data Game gameData = Game {
     _isRunning  :: Bool,
+    _fps        :: Word32,
     _screen     :: Screen,
     _entities   :: Map.HashMap String Image,
     _gameData   :: gameData
@@ -43,10 +45,11 @@ drawEntity x y img g = drawImage x y (getEntity img g) (_screenSurface (_screen 
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {
-    _screen     = s,
-    _isRunning  = True,
-    _entities   = Map.empty,
-    _gameData   = g
+    _screen     = s
+    , _isRunning  = True
+    , _entities   = Map.empty
+    , _gameData   = g
+    , _fps        = 60
 }
 
 finish :: Game a -> Game a

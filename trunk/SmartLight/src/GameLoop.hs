@@ -54,16 +54,16 @@ newGameLoop gl = GameLoop {
     _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
 }
 
-simpleGameLoop :: [String] -> (Event -> Game a -> IO (Game a)) -> (Game a -> IO ()) -> GameLoop a
+simpleGameLoop :: [String] -> (Event -> Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
 simpleGameLoop xs l d = newGameLoop $ defaultGameLoop {
       _onInit       = loadEntities xs
-    , _onGameLogic  = l
+    , _onGameLogic  = \e -> return . l e
     , _onRender     = d
 }
 
 mainLoop :: GameLoop a -> Game a -> IO (Game a)
 mainLoop gl g = if _isRunning g then
-  do newG <- events (_onGameLogic gl) g 
+  do newG <- events (_onGameLogic gl) g
      _onRender gl newG
      SDL.delay 5
      mainLoop gl newG

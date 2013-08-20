@@ -3,47 +3,56 @@ module Examples.Pong.Pong where
 import SmartLight
 
 data Ball = Ball {
-    ballX :: Int,
-    ballY :: Int
+    _ballX :: Int,
+    _ballY :: Int
 }
 
 type Points = Int
 
 data Player = Player {
-    playerX :: Int,
-    playerY :: Int,
-    playerPoints :: Points
+    _playerX :: Int,
+    _playerY :: Int,
+    _playerPoints :: Points
 }
 
 data PongData = PongData {
-    player1 :: Player,
-    player2 :: Player,
-    ball :: Ball
+    _player1 :: Player,
+    _player2 :: Player,
+    _ball :: Ball
 }
 
 newPong :: PongData
 newPong = PongData {
-    player1 = Player 0 0 0,
-    player2 = Player 0 0 0,
-    ball = Ball 0 0
+    _player1 = Player 10 (screenSizeY `div` 2) 0,
+    _player2 = Player (screenSizeX - 25) (screenSizeY `div` 2) 0,
+    _ball = Ball (screenSizeX `div` 2) (screenSizeY `div` 2)
 }
 
 type PongGame = Game PongData
+
+--moveUpPlayer1 :: PongGame -> PongGame
 
 screenSizeX, screenSizeY :: Int
 screenSizeX = 640
 screenSizeY = 480
 
-pongLogic :: Event -> PongGame -> IO PongGame 
-pongLogic e g | e == keyDown SDLK_DOWN = return g
-              | e == keyDown SDLK_UP   = return g
-              | otherwise = return g              
-
---pongLogic KeyUp   g =
---pongLogic (MouseMotion x y _ _) = 
-
+pongLogic :: Event -> PongGame -> PongGame 
+pongLogic e g | isKeyDown SDLK_DOWN e = g
+              | isKeyDown SDLK_UP e   = g
+              | otherwise             = g
+              
 pongRender :: PongGame -> IO ()
-pongRender = undefined
+pongRender g = do
+    let pongData = _gameData g
+    let ball     = _ball pongData
+    let player1  = _player1 pongData
+    let player2  = _player2 pongData
+    
+    drawEntity 0 0 "table" g
+    drawEntity (_playerX player1) (_playerY player1) "player" g
+    drawEntity (_playerX player2) (_playerY player2) "player" g
+    drawEntity (_ballX ball) (_ballY ball) "ball" g
+    
     
 pongLoop :: GameLoop PongData
 pongLoop = simpleGameLoop ["ball", "player", "table"] pongLogic pongRender

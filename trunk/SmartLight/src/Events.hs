@@ -2,22 +2,17 @@ module Events where
 
 import Graphics.UI.SDL.Events
 import Graphics.UI.SDL.Keysym
-import Data.Bits
+import Control.Lens
+import Game
 
-keyDown :: SDLKey -> Event
-keyDown k = KeyDown (Keysym k [] '0')
+isKeyDown, isKeyUp :: SDLKey -> Game a -> Bool
+isKeyDown k g = isKeyDown' k (view event g)
+isKeyUp   k g = isKeyUp'   k (view event g) 
 
-keyUp :: SDLKey -> Event
-keyUp k = KeyUp (Keysym k [] '0')
+isKeyDown', isKeyUp' :: SDLKey -> Event -> Bool
 
-isKeyDown, isKeyUp :: SDLKey -> Event -> Bool
-isKeyDown k e = e == keyDown k
-isKeyUp   k e = e == keyUp   k
+isKeyDown' k1 (KeyDown (Keysym k2 _ _)) = k1 == k2
+isKeyDown' _ _ = False
 
-mouseX :: Event -> Int
-mouseX (MouseMotion x _ _ _) = bitSize x
-mouseX _                     = error "not mouse"
-
-mouseY :: Event -> Int
-mouseY (MouseMotion _ y _ _) = bitSize y
-mouseY _                     = error "not mouse"
+isKeyUp'   k1 (KeyUp (Keysym k2 _ _))   = k1 == k2
+isKeyUp' _ _ = False

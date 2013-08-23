@@ -14,8 +14,7 @@ library
                    SDL,
                    containers,
                    unordered-containers,
-                   data-lens,
-                   data-lens-template
+                   lens
 
   ghc-options:     -Wall
 
@@ -41,8 +40,7 @@ executable SmartLight
                    SDL,
                    containers,
                    unordered-containers,
-                   data-lens,
-                   data-lens-template
+                   lens
   ghc-options:     -Wall
   other-modules:   
                    Game,

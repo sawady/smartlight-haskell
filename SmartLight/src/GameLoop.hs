@@ -4,6 +4,7 @@ import Screen
 import Game
 import Graphics.UI.SDL as SDL
 import Common
+import Control.Lens
 import Control.Monad (liftM, when)
 import Control.Exception (catch, IOException)
 
@@ -16,7 +17,7 @@ import Control.Exception (catch, IOException)
 
 data GameLoop a = GameLoop {
     _onInit       :: Game a -> IO (Game a),
-    _onGameLogic  :: Event -> Game a -> IO (Game a),
+    _onGameLogic  :: Game a -> Game a,
     _onRender     :: Game a -> IO (),
     _onCleanUp    :: Game a -> IO ()
 }
@@ -32,12 +33,12 @@ defaultGameLoop = GameLoop {
         defaultInit :: Game a -> IO (Game a)
         defaultInit = return
         
-        defaultLogic :: Event -> Game a -> IO (Game a)
-        defaultLogic ev game =
-            return $
-                case ev of
-                    Quit -> finish game
-                    _    -> game
+        defaultLogic :: Game a -> Game a
+        defaultLogic game =
+                case view event game of
+                    (MouseMotion x y _ _) -> set mousePos (fromIntegral x, fromIntegral y) game
+                    Quit  -> finish game
+                    _     -> game
                 
         defaultRender :: Game a -> IO ()
         defaultRender g =
@@ -49,40 +50,48 @@ defaultGameLoop = GameLoop {
 newGameLoop :: GameLoop a -> GameLoop a
 newGameLoop gl = GameLoop {
     _onInit       = extendsM _onInit defaultGameLoop gl,
-    _onGameLogic  = \e -> extendsM (`_onGameLogic` e) defaultGameLoop gl,
+    _onGameLogic  = extends _onGameLogic gl defaultGameLoop,
     _onRender     = extendsM_ _onRender gl defaultGameLoop,
     _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
 }
 
-simpleGameLoop :: [String] -> (Event -> Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
+simpleGameLoop :: [String] -> (Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
 simpleGameLoop xs l d = newGameLoop $ defaultGameLoop {
-      _onInit       = loadEntities xs
-    , _onGameLogic  = \e -> return . l e
+      _onInit       = \g -> do
+        newG <- loadEntities xs g
+        _    <- SDL.enableKeyRepeat 10 40
+        return newG
+        
+    , _onGameLogic  = l
     , _onRender     = d
 }
 
-mainLoop :: GameLoop a -> Game a -> IO (Game a)
-mainLoop gl g = if _isRunning g then
-  do 
-     newG <- events (_onGameLogic gl) g
-     _onRender gl newG
-     
+controlFrameRate :: IO ()
+controlFrameRate = do
      ticks1 <- SDL.getTicks
      when (ticks1 < 1000 `div` 10)
         (do
             ticks2 <- SDL.getTicks
             SDL.delay (( 1000 `div` 10 ) - ticks2))
 
+mainLoop :: GameLoop a -> Game a -> IO (Game a)
+mainLoop gl g = if _isRunning g then
+  do 
+     newG <- events g
+     _onRender gl newG
+     controlFrameRate
      mainLoop gl newG
   else return g
   
   where
-    events :: (Event -> Game a -> IO (Game a)) -> Game a -> IO (Game a)
-    events gameLogic game = do
-      event <- SDL.pollEvent
-      case event of
-        NoEvent -> return game
-        _       -> gameLogic event game >>= events gameLogic
+--    events :: (Game a -> Game a) -> Game a -> IO (Game a)
+    events game = do
+      ev <- SDL.pollEvent
+      let newG = _onGameLogic gl (set event ev game)
+
+      case ev of
+        NoEvent -> return newG
+        _       -> events newG
         
 executeGame :: WindowData -> a -> GameLoop a -> IO ()
 executeGame w g gl = Control.Exception.catch execute abnormalQuit

@@ -88,7 +88,6 @@ mainLoop gl g = if _isRunning g then
     events game = do
       ev <- SDL.pollEvent
       let newG = _onGameLogic gl (set event ev game)
-
       case ev of
         NoEvent -> return newG
         _       -> events newG

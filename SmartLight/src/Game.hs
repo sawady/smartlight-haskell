@@ -16,6 +16,7 @@ data Game gameData = Game {
     _mousePos   :: (Int,Int),
     _event      :: Event,
     _fps        :: Word32,
+    _lastUpdateTime :: Word32,
     _screen     :: Screen,
     _entities   :: Map.HashMap String Image,
     _gameData   :: gameData
@@ -48,13 +49,14 @@ drawEntity x y img g = drawImage x y (getEntity img g) (_screenSurface (_screen 
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {
-      _screen     = s
-    , _mousePos   = (0,0)
-    , _event      = NoEvent  
-    , _isRunning  = True
-    , _entities   = Map.empty
-    , _gameData   = g
-    , _fps        = 60
+      _screen         = s
+    , _lastUpdateTime = 0
+    , _mousePos       = (0,0)
+    , _event          = NoEvent  
+    , _isRunning      = True
+    , _entities       = Map.empty
+    , _gameData       = g
+    , _fps            = 60
 }
 
 finish :: Game a -> Game a

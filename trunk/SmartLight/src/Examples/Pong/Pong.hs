@@ -5,18 +5,27 @@ import SmartLight
 import Control.Lens.TH
 import Control.Lens
 
+data Pos = Pos {
+      _pX :: Int
+    , _pY :: Int
+}
+
+data Vel = Vel {
+      _vX :: Int
+    , _vY :: Int
+}
+
 data Ball = Ball {
-    _ballX :: Int,
-    _ballY :: Int
+      _ballPos  :: Pos
+    , _ballVel  :: Vel
 }
 
 type Points = Int
 
 data Player = Player {
-    _playerX :: Int,
-    _playerY :: Int,
+    _playerPos :: Pos,
     _playerPoints :: Points
-} 
+}
 
 data PongData = PongData {
     _player1 :: Player,
@@ -24,15 +33,17 @@ data PongData = PongData {
     _ball :: Ball
 }
 
+makeLenses ''Pos
+makeLenses ''Vel
 makeLenses ''Ball
 makeLenses ''Player
 makeLenses ''PongData
 
 newPong :: PongData
 newPong = PongData {
-    _player1 = Player (20 - screenSizeX `div` 2) 0 0,
-    _player2 = Player (screenSizeX `div` 2 - 20) 0 0,
-    _ball = Ball 0 0
+    _player1 = Player (Pos (20 - screenSizeX `div` 2) 0) 0,
+    _player2 = Player (Pos (screenSizeX `div` 2 - 20) 0) 0,
+    _ball = Ball (Pos 0 0) (Vel 1 1)
 }
 
 type PongGame = Game PongData
@@ -40,35 +51,36 @@ type PongGame = Game PongData
 playerVel :: Int
 playerVel = 30
 
-ballSpeed :: Int
-ballSpeed = 1
-
 moveUpPlayer :: Player -> Player
-moveUpPlayer = over playerY (\x -> x - playerVel) 
+moveUpPlayer = over (playerPos.pY) (\x -> x - playerVel) 
 
 moveDownPlayer :: Player -> Player
-moveDownPlayer = over playerY (+ playerVel)
+moveDownPlayer = over (playerPos.pY) (+ playerVel)
 
 moveBall :: Ball -> Ball
 moveBall = moveBallX . moveBallY
 
 moveBallX :: Ball -> Ball
-moveBallX = over ballX (\x -> (x + ballSpeed) * bounceOnEdgeX x)
+moveBallX b = over (ballPos . pX) (\ x -> x + 1)
+  (if onEdgeX (view (ballPos . pX) b) then bounceX b else b)
 
+
+               
 moveBallY :: Ball -> Ball
-moveBallY = over ballY (\y -> (y + ballSpeed) * bounceOnEdgeY y)
+moveBallY b = over (ballPos . pY) (\ y -> y + 1)
+  (if onEdgeY (view (ballPos . pY) b) then bounceY b else b)
+               
+bounceX :: Ball -> Ball
+bounceX = over (ballVel  . vX) (\x -> x * (-1))           
 
-bounce :: Bool -> Int
-bounce True  = -1
-bounce False = 1
+bounceY :: Ball -> Ball
+bounceY = over (ballVel  . vY) (\y -> y * (-1))   
 
-bounceOnEdgeX :: Int -> Int
-bounceOnEdgeX = bounce . outOfBounds
-    where outOfBounds x = x < 0 || x > screenSizeX
-    
-bounceOnEdgeY :: Int -> Int
-bounceOnEdgeY = bounce . outOfBounds
-    where outOfBounds y = y < 0 || y > screenSizeY
+onEdgeX :: Int -> Bool
+onEdgeX x = x < 0 || x > screenSizeX
+               
+onEdgeY :: Int -> Bool
+onEdgeY y = y < 0 || y > screenSizeY
 
 screenSizeX, screenSizeY :: Int
 screenSizeX = 640
@@ -80,7 +92,7 @@ pongLogic = over (gameData.ball) moveBall . pongLogicInputs
 pongLogicInputs :: PongGame -> PongGame 
 pongLogicInputs g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
                   | isKeyDown SDLK_UP g   = over (gameData.player1) moveUpPlayer g
-                  | otherwise             = set  (gameData.player2.playerY) (mouseY g) g
+                  | otherwise             = set  (gameData.player2.playerPos.pY) (mouseY g) g
               
 pongRender :: PongGame -> IO ()
 pongRender g = do
@@ -90,9 +102,9 @@ pongRender g = do
     let p2  = view player2 d
     
     drawEntity 0 0 "table" g
-    drawEntity (view playerX p1) (view playerY p1) "player" g
-    drawEntity (view playerX p2) (view playerY p2) "player" g
-    drawEntity (view ballX b)    (view ballY b)    "ball"   g
+    drawEntity (view (playerPos.pX) p1) (view (playerPos.pY) p1) "player" g
+    drawEntity (view (playerPos.pX) p2) (view (playerPos.pY) p2) "player" g
+    drawEntity (view (ballPos.pX) b)    (view (ballPos.pY) b)    "ball"   g
     
     
 pongLoop :: GameLoop PongData

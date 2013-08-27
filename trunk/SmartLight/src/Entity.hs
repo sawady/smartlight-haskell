@@ -4,8 +4,6 @@ module Entity where
 import Control.Lens.TH
 import Control.Lens
 
-type PureEntity = Entity ()
-
 data Pos = Pos {
       _pX :: Int
     , _pY :: Int
@@ -17,13 +15,13 @@ data Vel = Vel {
 }
 
 data Entity a = Entity {
---      _onInput    :: Entity a -> Entity a
---    , _always     :: Entity a -> Entity a
       _entityName :: String
     , _pos        :: Pos
     , _vel        :: Vel
     , _entityData :: a
 }
+
+type PureEntity = Entity ()
 
 makeLenses ''Pos
 makeLenses ''Vel
@@ -34,9 +32,7 @@ newPureEntity = newEntity ()
 
 newEntity :: a -> String -> Entity a
 newEntity d n = Entity {
---      _onEvent    = id
---    , _default    = id
-     _entityName = n
+      _entityName = n
     , _pos        = Pos 0 0
     , _vel        = Vel 0 0
     , _entityData = d

@@ -11,7 +11,7 @@ import Ball
 data PongData = PongData {
       _player1 :: Player
     , _player2 :: Player
-    , _ball    :: PureEntity
+    , _ball    :: Ball
 }
 
 makeLenses ''PongData
@@ -25,12 +25,9 @@ pongByDefault :: PongGame -> PongGame
 pongByDefault = over (gameData.ball) moveBall
 
 pongEventLogic :: PongGame -> PongGame 
-pongEventLogic = pongLogicInputs
-
-pongLogicInputs :: PongGame -> PongGame 
-pongLogicInputs g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
-                  | isKeyDown SDLK_UP g   = over (gameData.player1) moveUpPlayer g
-                  | otherwise             = set  (gameData.player2.pos.pY) (mouseY g) g
+pongEventLogic g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
+                 | isKeyDown SDLK_UP g  = over (gameData.player1) moveUpPlayer g
+                 | otherwise            = set  (gameData.player2.pos.pY) (mouseY g) g
               
 pongRender :: PongGame -> IO ()
 pongRender g = do

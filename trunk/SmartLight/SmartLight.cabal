@@ -6,8 +6,7 @@ author:         Federico Sawady
 maintainer:     Federico Sawady
 
 library
-  hs-source-dirs:  src
-  build-depends:   
+  build-depends:    
                    base >= 4,
                    containers,
                    SDL-image,
@@ -15,42 +14,22 @@ library
                    containers,
                    unordered-containers,
                    lens
-
-  ghc-options:     -Wall
-
-  exposed-modules:   
+  ghc-options:      -Wall
+  exposed-modules:  
+                   SmartLight
+  hs-source-dirs:  
+                   src, 
+                   src/Examples/Pong
+  other-modules:   
+                   Ball,
+                   Common,
+                   CommonPong,
+                   Entity,
+                   Events,
                    Game,
                    GameLoop,
                    Image,
-                   Screen,
-                   SmartLight,
-                   GameEntity
-  other-modules:   
-                   Common,
-                   Examples.Pong.Pong,
-                   Events
-
-executable SmartLight
-  hs-source-dirs:  src
-  main-is:         Main.hs
-  build-depends:   
-                   base >= 4,
-                   containers,
-                   SDL-image,
-                   SDL,
-                   containers,
-                   unordered-containers,
-                   lens
-  ghc-options:     -Wall
-  other-modules:   
-                   Game,
-                   GameLoop,
-                   Image,
-                   Screen,
-                   SmartLight,
-                   Examples.TicTacToe.TicTacToe,
-                   Common,
-                   GameEntity,
-                   Examples.Pong.Pong,
-                   Events
-
+                   Main,
+                   Player,
+                   Pong,
+                   Screen

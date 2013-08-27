@@ -4,6 +4,7 @@ module Game where
 import Graphics.UI.SDL (Event, Event(NoEvent))
 import Screen
 import Image
+import Entity
 import Control.Lens.TH
 import Control.Lens
 import qualified Data.HashMap.Strict as Map
@@ -43,9 +44,15 @@ loadEntity n g = do
 loadEntities :: [String] -> Game a -> IO (Game a)
 loadEntities xs g = foldM (flip loadEntity) g xs
 
+drawEntity :: forall a b.
+                Getting (Entity a) b (Entity a) -> Game b -> IO ()
+drawEntity p g = drawEntity' (view p (view gameData g)) g
 
-drawEntity :: Int -> Int -> String -> Game a -> IO ()
-drawEntity x y img g = drawImage x y (getEntity img g) (_screenSurface (_screen g))
+drawEntity' :: Entity a -> Game b -> IO ()
+drawEntity' e = drawImage (view (pos . pX) e) (view (pos . pY) e) (view entityName e)
+
+drawImage :: Int -> Int -> String -> Game a -> IO ()
+drawImage x y img g = drawImageOnSurface x y (getEntity img g) (_screenSurface (_screen g))
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {

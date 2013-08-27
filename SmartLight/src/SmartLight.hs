@@ -5,4 +5,4 @@ import GameLoop as X
 import Image as X
 import Events as X
 import Graphics.UI.SDL as X
--- import GameEntity as X
+import Entity as X

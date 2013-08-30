@@ -35,7 +35,7 @@ getArea :: Surface -> IO Rect
 getArea = getClipRect
     
 loadImage :: FilePath -> IO Surface
-loadImage file = loadImageWithPath file "./src/Examples/Pong/resources"
+loadImage file = loadImageWithPath file "./resources"
 
 newImage :: Surface -> Rect -> Image
 newImage s r = Image {

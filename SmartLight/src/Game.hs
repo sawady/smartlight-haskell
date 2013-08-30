@@ -40,7 +40,6 @@ loadToImages :: String -> Game a -> IO (Game a)
 loadToImages n g = do
     img <- loadImage n
     r   <- getArea img
-    print r
     return $ addImage n (newImage img r) g
 
 loadImageResources :: [String] -> Game a -> IO (Game a)

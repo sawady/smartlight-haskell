@@ -15,22 +15,15 @@ library
                    unordered-containers,
                    lens
   ghc-options:      -Wall
-  exposed-modules:  
-                   SmartLight
-  hs-source-dirs:  
-                   src, 
-                   src/Examples/Pong
-  other-modules:   
-                   Ball,
+  exposed-modules:  SmartLight
+  hs-source-dirs:   src
+  other-modules:    
                    Common,
-                   CommonPong,
                    Entity,
                    Events,
                    Game,
                    GameLoop,
                    Image,
                    Main,
-                   Player,
-                   Pong,
                    Screen,
                    Bounds

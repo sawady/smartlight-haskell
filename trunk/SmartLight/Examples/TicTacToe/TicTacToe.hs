@@ -1,4 +1,4 @@
-module Examples.TicTacToe.TicTacToe where
+module  where
 
 --import Graphics.UI.SDL as SDL
 --

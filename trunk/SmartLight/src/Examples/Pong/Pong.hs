@@ -21,13 +21,23 @@ type PongGame = Game PongData
 newPong :: PongData
 newPong = PongData newPlayer1 newPlayer2 newBall
 
+onCollideWithPlayer :: PongGame ->  Player -> Ball -> Ball
+onCollideWithPlayer g p b = if collideWith b p g
+                               then bounceX b
+                               else b
+                                
+onCollideWithPlayer1, onCollideWithPlayer2 :: PongGame -> Ball -> Ball
+onCollideWithPlayer1 g = onCollideWithPlayer g (view (gameData . player1) g)
+onCollideWithPlayer2 g = onCollideWithPlayer g (view (gameData . player2) g)
+
 pongByDefault :: PongGame -> PongGame
-pongByDefault = over (gameData.ball) moveBall
+pongByDefault g = over (gameData.ball) 
+                       (onCollideWithPlayer1 g . onCollideWithPlayer2 g . moveBall) g
 
 pongEventLogic :: PongGame -> PongGame 
 pongEventLogic g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
-                 | isKeyDown SDLK_UP g  = over (gameData.player1) moveUpPlayer g
-                 | otherwise            = set  (gameData.player2.pos.pY) (mouseY g) g
+                 | isKeyDown SDLK_UP g   = over (gameData.player1) moveUpPlayer g
+                 | otherwise             = set  (gameData.player2.pos.pY) (mouseY g) g
               
 pongRender :: PongGame -> IO ()
 pongRender g = do

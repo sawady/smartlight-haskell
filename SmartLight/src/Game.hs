@@ -4,6 +4,7 @@ module Game where
 import Graphics.UI.SDL (Event, Event(NoEvent))
 import Screen
 import Image
+import Bounds
 import Entity
 import Control.Lens.TH
 import Control.Lens
@@ -18,31 +19,32 @@ data Game gameData = Game {
     _event      :: Event,
     _fps        :: Word32,
     _lastUpdateTime :: Word32,
-    _screen     :: Screen,
-    _entities   :: Map.HashMap String Image,
-    _gameData   :: gameData
+    _screen         :: Screen,
+    _images         :: Map.HashMap String Image,
+    _gameData       :: gameData
 }
 
 makeLenses ''Game
 
-addEntity :: String -> Image -> Game a -> Game a
-addEntity n e = over entities (Map.insert n e) 
+addImage :: String -> Image -> Game a -> Game a
+addImage n e = over images (Map.insert n e)
 
-removeEntity :: String -> Game a -> Game a
-removeEntity n = over entities (Map.delete n)
+removeImage :: String -> Game a -> Game a
+removeImage n = over images (Map.delete n)
 
-getEntity :: String -> Game a -> Image
-getEntity n g = fromMaybe (error $ "Image " ++ n ++ " not found") $
-    Map.lookup n (view entities g)
+getImage :: String -> Game a -> Image
+getImage n g = fromMaybe (error $ "Image " ++ n ++ " not found") $
+    Map.lookup n (view images g)
     
-loadEntity :: String -> Game a -> IO (Game a)
-loadEntity n g = do
+loadToImages :: String -> Game a -> IO (Game a)
+loadToImages n g = do
     img <- loadImage n
     r   <- getArea img
-    return $ addEntity n (newImage img r) g
+    print r
+    return $ addImage n (newImage img r) g
 
-loadEntities :: [String] -> Game a -> IO (Game a)
-loadEntities xs g = foldM (flip loadEntity) g xs
+loadImageResources :: [String] -> Game a -> IO (Game a)
+loadImageResources xs g = foldM (flip loadToImages) g xs
 
 drawEntity :: forall a b.
                 Getting (Entity a) b (Entity a) -> Game b -> IO ()
@@ -52,7 +54,7 @@ drawEntity' :: Entity a -> Game b -> IO ()
 drawEntity' e = drawImage (view (pos . pX) e) (view (pos . pY) e) (view entityName e)
 
 drawImage :: Int -> Int -> String -> Game a -> IO ()
-drawImage x y img g = drawImageOnSurface x y (getEntity img g) (_screenSurface (_screen g))
+drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {
@@ -61,7 +63,7 @@ newGame s g = Game {
     , _mousePos       = (0,0)
     , _event          = NoEvent  
     , _isRunning      = True
-    , _entities       = Map.empty
+    , _images         = Map.empty
     , _gameData       = g
     , _fps            = 60
 }
@@ -72,3 +74,10 @@ finish = set isRunning False
 mouseX,mouseY :: Game a -> Int
 mouseX g = view (mousePos . _1) g + (view (screen . screenData . width)  g `div` 2)
 mouseY g = view (mousePos . _2) g - (view (screen . screenData . height) g `div` 2)
+
+collideWith :: Entity a -> Entity b -> Game c -> Bool
+collideWith e1 e2 g = collideWithBounds rImg1 rImg2
+    where img1 = getImage (view entityName e1) g
+          img2 = getImage (view entityName e2) g
+          rImg1   = RBound . uncurry (RectBound (view pos e1)) $ imgSize img1
+          rImg2   = RBound . uncurry (RectBound (view pos e2)) $ imgSize img2

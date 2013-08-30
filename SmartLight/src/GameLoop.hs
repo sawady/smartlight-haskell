@@ -61,7 +61,7 @@ newGameLoop gl = GameLoop {
 simpleGameLoop :: [String] -> (Game a -> Game a) ->  (Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
 simpleGameLoop xs df l d = newGameLoop $ defaultGameLoop {
       _onInit       = \g -> do
-        newG <- loadEntities xs g
+        newG <- loadImageResources xs g
         _    <- SDL.enableKeyRepeat 10 40
         return newG
     

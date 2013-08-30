@@ -32,4 +32,5 @@ library
                    Main,
                    Player,
                    Pong,
-                   Screen
+                   Screen,
+                   Bounds

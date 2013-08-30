@@ -11,8 +11,12 @@ data Image = Image {
     _partialSurface :: Maybe Rect
 } deriving (Show)
 
-size :: Image -> (Int,Int)
-size img = if isNothing (_partialSurface img)
+imgOrigin :: Image -> (Int,Int)
+imgOrigin img = (rectX r, rectY r)
+    where r = fromMaybe (_rect img) (_partialSurface img)
+
+imgSize :: Image -> (Int,Int)
+imgSize img = if isNothing (_partialSurface img)
               then (surfaceGetWidth s, surfaceGetHeight s) 
               else (rectW r, rectH r)
     where s = _surface img

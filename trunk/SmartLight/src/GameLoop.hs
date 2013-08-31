@@ -2,6 +2,7 @@ module GameLoop where
 
 import Screen
 import Game
+import Graphics.UI.SDL.TTF as TTF
 import Graphics.UI.SDL as SDL
 import Common
 import Control.Lens
@@ -102,7 +103,9 @@ executeGame w g gl = Control.Exception.catch execute abnormalQuit
         execute :: IO ()
         execute = do
             SDL.init [SDL.InitEverything]
+            _ <- TTF.init
             _ <- liftM (`newGame` g) (createScreen w) >>= _onInit gl  >>= mainLoop gl >>= _onCleanUp gl
+            TTF.quit
             SDL.quit
         
         abnormalQuit :: IOException -> IO ()

@@ -47,7 +47,7 @@ pongRender g = do
     drawEntity ball    g
     
 pongLoop :: GameLoop PongData
-pongLoop = simpleGameLoop ["ball", "player", "table"] pongByDefault pongEventLogic pongRender
+pongLoop = loadingImages ["ball", "player", "table"] $ simpleGameLoop pongByDefault pongEventLogic pongRender
 
 main :: IO ()
 main  = executeSimpleGame screenSizeX screenSizeY "Pong" newPong pongLoop

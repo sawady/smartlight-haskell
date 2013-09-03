@@ -34,7 +34,9 @@ defaultGameLoop = GameLoop {
 }
     where
         defaultInit :: Game a -> IO (Game a)
-        defaultInit = return
+        defaultInit game = do 
+            _ <- SDL.enableKeyRepeat 10 40
+            return game
         
         defaultLogic :: Game a -> Game a
         defaultLogic game =
@@ -59,16 +61,21 @@ newGameLoop gl = GameLoop {
     _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
 }
 
-simpleGameLoop :: [String] -> (Game a -> Game a) ->  (Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
-simpleGameLoop xs df l d = newGameLoop $ defaultGameLoop {
-      _onInit       = \g -> do
-        newG <- loadImageResources xs g
-        _    <- SDL.enableKeyRepeat 10 40
-        return newG
-    
-    , _byDefault = df    
+simpleGameLoop :: (Game a -> Game a) ->  (Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
+simpleGameLoop df l d = newGameLoop $ defaultGameLoop {
+      _byDefault = df    
     , _onEvent   = l
     , _onRender  = d
+}
+
+loadingImages :: [String] -> GameLoop a -> GameLoop a
+loadingImages xs gl = newGameLoop $ gl {
+      _onInit       = loadImageResources xs
+}
+
+loadingFonts :: [(String,Int)] -> GameLoop a -> GameLoop a
+loadingFonts xs gl = newGameLoop $ gl {
+      _onInit       = loadFontResources xs
 }
 
 controlFrameRate :: IO ()

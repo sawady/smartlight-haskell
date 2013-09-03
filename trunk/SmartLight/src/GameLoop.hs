@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module GameLoop where
 
 import Screen
@@ -5,8 +6,9 @@ import Game
 import Graphics.UI.SDL.TTF as TTF
 import Graphics.UI.SDL as SDL
 import Common
+import Control.Lens.TH
 import Control.Lens
-import Control.Monad (liftM, when)
+import Control.Monad (liftM, when, (>=>))
 import Control.Exception (catch, IOException)
 
 -- init
@@ -23,6 +25,8 @@ data GameLoop a = GameLoop {
     _onRender     :: Game a -> IO (),
     _onCleanUp    :: Game a -> IO ()
 }
+
+makeLenses ''GameLoop
 
 defaultGameLoop :: GameLoop a
 defaultGameLoop = GameLoop {
@@ -51,14 +55,29 @@ defaultGameLoop = GameLoop {
                 
         defaultCleanUp :: Game a -> IO ()
         defaultCleanUp _ = return ()
-       
+        
+addInit :: (Game a -> IO (Game a)) -> GameLoop a -> GameLoop a
+addInit  f  = over onInit (>=> f)
+
+addByDefaultLogic :: (Game a -> Game a) -> GameLoop a -> GameLoop a
+addByDefaultLogic f = over byDefault (. f)
+
+addOnEventLogic :: (Game a -> Game a) -> GameLoop a -> GameLoop a
+addOnEventLogic f = over onEvent (. f)
+
+addRender :: (Game a -> IO ()) -> GameLoop a -> GameLoop a
+addRender f = over onRender (>> f)
+
+addCleanUp :: (Game a -> IO ()) -> GameLoop a -> GameLoop a
+addCleanUp f = over onCleanUp (>> f)
+
 newGameLoop :: GameLoop a -> GameLoop a
 newGameLoop gl = GameLoop {
-    _onInit       = extendsM _onInit defaultGameLoop gl,
+    _onInit       = extendsM _onInit gl defaultGameLoop,
     _byDefault    = extends _byDefault gl defaultGameLoop,
     _onEvent      = extends _onEvent gl defaultGameLoop,
     _onRender     = extendsM_ _onRender gl defaultGameLoop,
-    _onCleanUp    = extendsM_ _onCleanUp defaultGameLoop gl
+    _onCleanUp    = extendsM_ _onCleanUp gl defaultGameLoop
 }
 
 simpleGameLoop :: (Game a -> Game a) ->  (Game a -> Game a) -> (Game a -> IO ()) -> GameLoop a
@@ -69,14 +88,10 @@ simpleGameLoop df l d = newGameLoop $ defaultGameLoop {
 }
 
 loadingImages :: [String] -> GameLoop a -> GameLoop a
-loadingImages xs gl = newGameLoop $ gl {
-      _onInit       = loadImageResources xs
-}
+loadingImages xs = addInit (loadImageResources xs)
 
 loadingFonts :: [(String,Int)] -> GameLoop a -> GameLoop a
-loadingFonts xs gl = newGameLoop $ gl {
-      _onInit       = loadFontResources xs
-}
+loadingFonts xs = addInit (loadFontResources xs)
 
 controlFrameRate :: IO ()
 controlFrameRate = do

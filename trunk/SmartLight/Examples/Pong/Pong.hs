@@ -45,11 +45,12 @@ pongRender g = do
     drawEntity player1 g
     drawEntity player2 g
     drawEntity ball    g
+    drawText 100 100 "0" "scoreFont" (Color 10 10 10) g
     
 pongLoop :: GameLoop PongData
 pongLoop = 
-    loadingFonts  [("scoreFont", 32)] .
-    loadingImages ["ball", "player", "table"] $  
+    loadingImages ["ball", "player", "table"] $
+    loadingFonts  [("scoreFont", 32)] $
     simpleGameLoop pongByDefault pongEventLogic pongRender
 
 main :: IO ()

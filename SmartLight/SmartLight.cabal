@@ -18,6 +18,7 @@ library
   exposed-modules:  SmartLight
   hs-source-dirs:   src
   other-modules:    
+                   Bounds,
                    Common,
                    Entity,
                    Events,
@@ -26,5 +27,4 @@ library
                    Image,
                    Main,
                    Screen,
-                   Bounds,
                    Text

@@ -21,6 +21,9 @@ type PongGame = Game PongData
 newPong :: PongData
 newPong = PongData newPlayer1 newPlayer2 newBall
 
+onCollideWithPlayer :: ((Entity b -> Accessor (Entity b) (Entity b))
+                          -> PongData -> Accessor (Entity b) PongData)
+                         -> Game PongData -> Game PongData
 onCollideWithPlayer p g = set (gameData.ball) 
     (if collideWith b pl g
        then bounceX b

@@ -6,6 +6,7 @@ import Graphics.UI.SDL (Event, Event(NoEvent), Color)
 import Screen
 import Image
 import Text
+import Common
 import Bounds
 import Entity
 import Control.Lens.TH
@@ -64,6 +65,11 @@ loadToFonts n s g = do
 loadFontResources :: [(String,Int)] -> Game a -> IO (Game a)
 loadFontResources xs g = foldM (flip . uncurry $ loadToFonts) g xs
 
+newGameEntity :: Game a -> b -> String -> Entity b
+newGameEntity g d n = (newEntity d n) {
+        _bounds = uncurry Bounds $ imgSize (getImage n g)
+    }  
+
 drawEntity :: forall a b.
                 Getting (Entity a) b (Entity a) -> Game b -> IO ()
 drawEntity p g = drawEntity' (view p (view gameData g)) g
@@ -93,10 +99,3 @@ finish = set isRunning False
 mouseX,mouseY :: Game a -> Int
 mouseX g = view (mousePos . _1) g + (view (screen . screenData . width)  g `div` 2)
 mouseY g = view (mousePos . _2) g - (view (screen . screenData . height) g `div` 2)
-
-collideWith :: Entity a -> Entity b -> Game c -> Bool
-collideWith e1 e2 g = collideWithBounds rImg1 rImg2
-    where img1 = getImage (view entityName e1) g
-          img2 = getImage (view entityName e2) g
-          rImg1   = RBound . uncurry (RectBound (view pos e1)) $ imgSize img1
-          rImg2   = RBound . uncurry (RectBound (view pos e2)) $ imgSize img2

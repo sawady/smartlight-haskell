@@ -1,6 +1,21 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Common where
 
 import Control.Monad ((>=>))
+import Control.Lens.TH
+
+data Pos = Pos {
+      _pX :: Int
+    , _pY :: Int
+}
+
+data Vel = Vel {
+      _vX :: Int
+    , _vY :: Int
+}
+
+makeLenses ''Pos
+makeLenses ''Vel
 
 compose2 :: (b -> c) -> (a -> a1 -> b) -> a -> a1 -> c
 compose2 = (.) . (.)

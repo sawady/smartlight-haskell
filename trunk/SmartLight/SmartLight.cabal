@@ -27,4 +27,5 @@ library
                    Image,
                    Main,
                    Screen,
-                   Text
+                   Text,
+                   Extras

@@ -1,7 +1,6 @@
 module Ball where
 
 import SmartLight
---import Control.Lens
 import CommonPong
 
 type Ball = PureEntity

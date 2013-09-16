@@ -5,7 +5,6 @@ import Screen
 import Game
 import Graphics.UI.SDL.TTF as TTF
 import Graphics.UI.SDL as SDL
-import Common
 import Extras
 import Control.Lens.TH
 import Control.Lens

@@ -49,10 +49,12 @@ velSub :: Entity a -> Entity a
 velSub e = velSubX . velSubY $ e
 
 bounceX :: Entity a -> Entity b -> Entity a
-bounceX e1 e2 = (\b' -> over (pos . pX) (+ view (vel . vX) b' * 2) b') . over (vel  . vX) (* (-1)) $ e1
+bounceX e1 e2 = (\b' -> over (pos . pX) (+ view (vel . vX) b' * 2) b') . 
+                over (vel  . vX) (* (-1)) $ e1
 
 bounceY :: Entity a -> Entity b -> Entity a
-bounceY e1 e2 = (\b' -> over (pos . pY) (+ view (vel . vY) b' * 2) b') . over (vel  . vY) (* (-1)) $ e1
+bounceY e1 e2 = (\b' -> over (pos . pY) (+ view (vel . vY) b' * 2) b') . 
+                over (vel  . vY) (* (-1)) $ e1
 
 bounceOnEdgeX :: Int -> Entity a ->Entity a
 bounceOnEdgeX screenSizeX b = 

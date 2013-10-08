@@ -7,7 +7,7 @@ type Ball = PureEntity
 
 newBall :: Ball
 newBall = (newPureEntity "ball") {
-      _vel = Vel 3 3
+      _vel = (3, 3)
 }
 
 moveBall :: Ball -> Ball

@@ -21,10 +21,6 @@ type PongGame = Game PongData
 newPong :: PongData
 newPong = PongData newPlayer1 newPlayer2 newBall
 
-onCollideWithPlayer :: ((Entity b -> Accessor (Entity b) (Entity b))
-                          -> PongData -> Accessor (Entity b) PongData)
-                         -> Game PongData -> Game PongData
-
 onCollideWithPlayer p g = set (gameData.ball) 
     (if collideWith b pl
        then bounceX b pl
@@ -42,7 +38,7 @@ pongByDefault = ballCollision . over (gameData.ball) moveBall
 pongEventLogic :: PongGame -> PongGame 
 pongEventLogic g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
                  | isKeyDown SDLK_UP g   = over (gameData.player1) moveUpPlayer g
-                 | otherwise             = set  (gameData.player2.pos.pY) (mouseY g) g
+                 | otherwise             = set  (gameData.player2.pos._y) (mouseY g) g
               
 pongRender :: PongGame -> IO ()
 pongRender g = do

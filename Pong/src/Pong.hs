@@ -33,7 +33,7 @@ ballCollision :: PongGame -> PongGame
 ballCollision = onCollideWithPlayer player1 . onCollideWithPlayer player2                                
                                 
 pongByDefault :: PongGame -> PongGame
-pongByDefault = ballCollision . over (gameData.ball) moveBall
+pongByDefault = over (gameData.ball) moveBall
 
 pongEventLogic :: PongGame -> PongGame 
 pongEventLogic g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g

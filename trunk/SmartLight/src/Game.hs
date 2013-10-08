@@ -7,7 +7,6 @@ import Screen
 import Image
 import Text
 import Common
-import Bounds
 import Entity
 import Control.Lens.TH
 import Control.Lens
@@ -67,7 +66,7 @@ loadFontResources xs g = foldM (flip . uncurry $ loadToFonts) g xs
 
 newGameEntity :: Game a -> b -> String -> Entity b
 newGameEntity g d n = (newEntity d n) {
-        _bounds = uncurry Bounds $ imgSize (getImage n g)
+        _bounds = uncurry (,) $ imgSize (getImage n g)
     }  
 
 drawEntity :: forall a b.
@@ -75,7 +74,7 @@ drawEntity :: forall a b.
 drawEntity p g = drawEntity' (view p (view gameData g)) g
 
 drawEntity' :: Entity a -> Game b -> IO ()
-drawEntity' e = drawImage (view (pos . pX) e) (view (pos . pY) e) (view entityName e)
+drawEntity' e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityName e)
 
 drawText :: Int -> Int -> String -> String -> Color -> Game a -> IO ()
 drawText x y text fnt c g = drawTextOnSurface x y text (getFont fnt g) c (_screenSurface (_screen g))

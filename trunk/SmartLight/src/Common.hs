@@ -1,18 +1,17 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RankNTypes, KindSignatures, FlexibleContexts #-}
 module Common where
 
-import Control.Lens.TH
+import Control.Lens
 
-data Pos = Pos {
-      _pX :: Int
-    , _pY :: Int
-}
+type Pos = (Int,Int)
+type Vel = (Int,Int)
 
-data Vel = Vel {
-      _vX :: Int
-    , _vY :: Int
-}
+_x :: forall s t a b (f :: * -> *) (p :: * -> * -> *) .
+        (Functor f, Indexable Int p, Field1 s t a b) =>
+        p a (f b) -> s -> f t
+_x = _1
 
-makeLenses ''Pos
-makeLenses ''Vel
-
+_y :: forall s t a b (f :: * -> *) (p :: * -> * -> *).
+        (Functor f, Indexable Int p, Field2 s t a b) =>
+        p a (f b) -> s -> f t
+_y = _2

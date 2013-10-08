@@ -56,7 +56,7 @@ bounceY = bounce _y _y
 
 bounce axisSet axisGet e1 e2 = unMerge . changeDir $ e1
                  where changeDir = over (vel . axisSet) (* (-1))
-                       unMerge newE1 = set (pos . axisSet) (view (pos . axisGet) newE1 - view (pos . axisGet) e2) newE1
+                       unMerge newE1 = over (pos . axisSet) ((+) $ view (pos . axisGet) e2 - view (pos . axisGet) newE1) newE1
 
 bounceOnEdgeX :: Int -> Entity a ->Entity a
 bounceOnEdgeX screenSizeX b = 

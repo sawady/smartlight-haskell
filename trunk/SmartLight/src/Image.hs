@@ -26,11 +26,6 @@ loadImageWithPath :: FilePath -> FilePath -> IO Surface
 loadImageWithPath file srcFolder =
     SDLImage.load (srcFolder ++ "/" ++ file ++ ".png")
     
--- old version
---    surfOld <- SDLImage.load (srcFolder ++ "/" ++ file ++ ".png")
---    surfNew <- SDL.displayFormat surfOld
---    SDL.freeSurface surfOld    
-
 getArea :: Surface -> IO Rect
 getArea = getClipRect
     
@@ -54,8 +49,8 @@ drawImageOnSurface :: Int -> Int -> Image -> Surface -> IO ()
 drawImageOnSurface x y source dest = do
        _ <- SDL.blitSurface (_surface source) (_partialSurface source) dest (Just rect)
        return ()
-       
+        
        where
          centerX = fst $ _center source
          centerY = snd $ _center source
-         rect = Rect (x + 640 `div` 2 - centerX) (y + 480 `div` 2 - centerY) 0 0
+         rect = Rect (x - centerX) (y - centerY) 0 0

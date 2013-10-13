@@ -19,8 +19,8 @@ data Screen = Screen {
 makeLenses ''WindowData
 makeLenses ''Screen
 
-newWindowData :: Int -> Int -> String -> WindowData
-newWindowData w h t = WindowData {
+newWindowData :: (Int, Int) -> String -> WindowData
+newWindowData (w, h) t = WindowData {
     _width   = w
   , _height  = h
   , _bpp     = 32

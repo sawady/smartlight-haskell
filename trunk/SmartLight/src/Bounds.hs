@@ -5,10 +5,10 @@ import Control.Lens
 
 type Bounds = (Int,Int)
 
-_w :: (Int -> Accessor Int Int) -> Bounds -> Accessor Int Bounds
+_w :: Getter Bounds Int
 _w = _1
 
-_h :: (Int -> Accessor Int Int) -> Bounds -> Accessor Int Bounds
+_h :: Getter Bounds Int
 _h = _2
 
 collideWithBounds :: Pos -> Bounds -> Pos -> Bounds -> Bool

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes #-}
 module Entity where
 
 import Bounds
@@ -49,16 +49,17 @@ velSub :: Entity a -> Entity a
 velSub e = velSubX . velSubY $ e
 
 bounceX :: Entity a -> Entity b -> Entity a
-bounceX = bounce _x _x
+bounceX e1 e2 = bounce _x (view (pos . _x) e2) e1
 
 bounceY :: Entity a -> Entity b -> Entity a
-bounceY = bounce _y _y
+bounceY e1 e2 = bounce _y (view (pos . _y) e2) e1
 
-bounce axisSet axisGet e1 e2 = unMerge . changeDir $ e1
-                 where changeDir = over (vel . axisSet) (* (-1))
-                       unMerge newE1 = over (pos . axisSet) ((+) $ view (pos . axisGet) e2 - view (pos . axisGet) newE1) newE1
+bounce :: Setter' Pos Int -> Int -> Entity a -> Entity a
+bounce axis borderPos = unMerge . changeDir
+                 where changeDir = over (vel . axis) (* (-1))
+                       unMerge   = set  (pos . axis) borderPos
 
-bounceOnEdgeX :: Int -> Entity a ->Entity a
+bounceOnEdgeX :: Int -> Entity a -> Entity a
 bounceOnEdgeX screenSizeX b = 
     if onEdgeX screenSizeX b 
        then bounceX b b

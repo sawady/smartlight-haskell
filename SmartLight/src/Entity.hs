@@ -5,6 +5,9 @@ import Bounds
 import Common
 import Control.Lens.TH
 import Control.Lens
+import Extras
+
+data Edge = TopEdge | BottomEdge | LeftEdge | RightEdge
 
 data Entity a = Entity {
       _entityName  :: String
@@ -14,12 +17,10 @@ data Entity a = Entity {
     , _entityData  :: a
 }
 
-type PureEntity = Entity ()
-
 makeLenses ''Entity
 
-newPureEntity :: String -> PureEntity
-newPureEntity = newEntity ()
+newVoidEntity :: String -> Entity ()
+newVoidEntity = newEntity ()
 
 newEntity :: a -> String -> Entity a
 newEntity d n = Entity {
@@ -48,16 +49,27 @@ velSubX e = over (pos._x) (\x -> x - view (vel._x) e) e
 velSub :: Entity a -> Entity a
 velSub e = velSubX . velSubY $ e
 
-bounceX :: Entity a -> Entity b -> Entity a
-bounceX e1 e2 = bounce _x (view (pos . _x) e2) e1
+changeDir :: Setter' Vel Int -> Entity a -> Entity a
+changeDir axis = over (vel . axis) (* (-1))
 
-bounceY :: Entity a -> Entity b -> Entity a
-bounceY e1 e2 = bounce _y (view (pos . _y) e2) e1
+bounceOnCollide :: Entity b -> Entity a -> Entity a
+bounceOnCollide e2 e1 = on (collideWith e1 e2) (bounceY e2 . bounceX e2) e1
+
+bounceXOnCollide :: Entity b -> Entity a -> Entity a
+bounceXOnCollide e2 e1 = on (collideWith e1 e2) (bounceX e2) e1
+
+bounceYOnCollide :: Entity b -> Entity a -> Entity a
+bounceYOnCollide e2 e1 = on (collideWith e1 e2) (bounceY e2) e1
+
+bounceX :: Entity b -> Entity a -> Entity a
+bounceX e2 = bounce _x (view (pos . _x) e2)
+
+bounceY :: Entity b -> Entity a -> Entity a
+bounceY e2 = bounce _y (view (pos . _y) e2)
 
 bounce :: Setter' Pos Int -> Int -> Entity a -> Entity a
-bounce axis borderPos = unMerge . changeDir
-                 where changeDir = over (vel . axis) (* (-1))
-                       unMerge   = set  (pos . axis) borderPos
+bounce axis borderPos = putInBorder . changeDir axis
+                 where putInBorder = set  (pos . axis) borderPos
 
 bounceOnEdgeX :: Int -> Entity a -> Entity a
 bounceOnEdgeX screenSizeX b = 
@@ -70,18 +82,14 @@ bounceOnEdgeY screenSizeY b =
     if onEdgeY screenSizeY b  
        then bounceY b b
        else b
-
+       
 onEdgeX :: Int -> Entity a -> Bool
-onEdgeX screenSizeX e = x < (- midS) || x > midS
-   
+onEdgeX screenSizeX e = x < 0 || x > screenSizeX
     where x = view (pos . _x) e
-          midS = screenSizeX `div` 2
                
 onEdgeY :: Int -> Entity a -> Bool
-onEdgeY screenSizeY e = y < (- midS) || y > midS
-    
+onEdgeY screenSizeY e = y < 0 || y > screenSizeY
     where y = view (pos . _y) e
-          midS = screenSizeY `div` 2
     
 collideWith :: Entity a -> Entity b -> Bool
 collideWith e1 e2 = collideWithBounds (view pos e1) (view bounds e1) (view pos e2) (view bounds e2)

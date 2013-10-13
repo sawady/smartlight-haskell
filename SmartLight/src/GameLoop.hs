@@ -135,5 +135,5 @@ executeGame w g gl = Control.Exception.catch execute abnormalQuit
             print e
             SDL.quit
             
-executeSimpleGame :: Int -> Int -> String -> a -> GameLoop a -> IO ()
-executeSimpleGame w h t = executeGame (newWindowData w h t)            
+executeSimpleGame :: (Int, Int) -> String -> a -> GameLoop a -> IO ()
+executeSimpleGame screenSize t = executeGame (newWindowData screenSize t)            

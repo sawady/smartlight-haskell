@@ -94,7 +94,3 @@ newGame s g = Game {
 
 finish :: Game a -> Game a
 finish = set isRunning False
-
-mouseX,mouseY :: Game a -> Int
-mouseX g = view (mousePos . _1) g + (view (screen . screenData . width)  g `div` 2)
-mouseY g = view (mousePos . _2) g - (view (screen . screenData . height) g `div` 2)

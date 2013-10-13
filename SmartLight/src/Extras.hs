@@ -13,3 +13,9 @@ extendsM_ method g h e = method g e >> method h e
 
 extends :: (t -> c -> c) -> t -> t -> c -> c
 extends method g h = method g . method h
+
+on :: Bool -> (a -> a) -> a -> a
+on b f = 
+    if b
+       then f
+       else id

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes #-}
 module Pong where
 
 import SmartLight
@@ -21,33 +21,49 @@ type PongGame = Game PongData
 newPong :: PongData
 newPong = PongData newPlayer1 newPlayer2 newBall
 
-onCollideWithPlayer p g = set (gameData.ball) 
-    (if collideWith b pl
-       then bounceX b pl
-       else b) g
-       
-    where b  = view (gameData.ball) g
-          pl = view (gameData.p) g       
+onCollideWithPlayer :: Getter PongData Player -> PongData -> PongData
+onCollideWithPlayer p g = over ball (bounceXOnCollide pl) g
+    where pl = view p g
                                 
-ballCollision :: PongGame -> PongGame
-ballCollision = onCollideWithPlayer player1 . onCollideWithPlayer player2                                
-                                
+ballCollision :: PongData -> PongData
+ballCollision = onCollideWithPlayer player1 . onCollideWithPlayer player2 
+
+addPlayer1Point :: PongData -> PongData
+addPlayer1Point g = addPlayerPoint player1 cond g
+    where cond = view (ball . pos . _x) g >= fst screenSize
+
+addPlayer2Point :: PongData -> PongData
+addPlayer2Point g = addPlayerPoint player2 cond g 
+    where cond = view (ball . pos . _x) g <= 0      
+
+addPlayerPoint :: Setter' PongData Player -> Bool -> PongData -> PongData
+addPlayerPoint pl b = over (pl.entityData.playerPoints) addPoints
+    where addPoints = if b
+                         then (+1)
+                         else id
+                               
 pongByDefault :: PongGame -> PongGame
-pongByDefault = over (gameData.ball) moveBall
+pongByDefault = over gameData $ ballCollision . over ball moveBall . addPlayer1Point . addPlayer2Point
 
 pongEventLogic :: PongGame -> PongGame 
 pongEventLogic g | isKeyDown SDLK_DOWN g = over (gameData.player1) moveDownPlayer g
                  | isKeyDown SDLK_UP g   = over (gameData.player1) moveUpPlayer g
-                 | otherwise             = set  (gameData.player2.pos._y) (mouseY g) g
+                 | otherwise             = set  (gameData.player2.pos._y) (view (mousePos._y) g) g
+                 
+drawPongScore :: Int -> Int -> Getter PongData Player -> PongGame -> IO ()
+drawPongScore x y pl g = drawText x y (show $ view (gameData.pl.entityData.playerPoints) g) "scoreFont" (Color 255 255 255) g                 
               
 pongRender :: PongGame -> IO ()
 pongRender g = do
-    drawImage 0 0 "table" g
+    drawImage midX midY "table" g
     drawEntity player1 g
-    drawEntity player2 g
-    drawEntity ball    g
-    drawText (-46) 100 (show $ view (gameData.player1.entityData.playerPoints) g) "scoreFont" (Color 255 255 255) g
-    drawText 15 100  (show $ view (gameData.player2.entityData.playerPoints) g) "scoreFont" (Color 255 255 255) g
+    drawEntity player2 g 
+    drawEntity ball g    
+    drawPongScore (-46) 100 player1 g 
+    drawPongScore 15 100 player2 g
+    
+    where midX = fst midScreen
+          midY = snd midScreen  
     
 pongLoop :: GameLoop PongData
 pongLoop = 
@@ -56,4 +72,4 @@ pongLoop =
     simpleGameLoop pongByDefault pongEventLogic pongRender
 
 executePong :: IO ()
-executePong  = executeSimpleGame screenSizeX screenSizeY "Pong" newPong pongLoop
+executePong  = executeSimpleGame screenSize "Pong" newPong pongLoop

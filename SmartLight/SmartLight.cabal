@@ -13,19 +13,26 @@ library
                    SDL-ttf,
                    SDL-image,
                    SDL,
-                   lens
+                   lens,
+                   mtl
   ghc-options:      -Wall
   exposed-modules:  SmartLight
-  hs-source-dirs:   src
+  hs-source-dirs:   
+                    Examples/Pong/src, 
+                    src
   other-modules:    
+                   Ball,
                    Bounds,
                    Common,
+                   CommonPong,
                    Entity,
                    Events,
+                   Extras,
                    Game,
                    GameLoop,
                    Image,
                    Main,
+                   Player,
+                   Pong,
                    Screen,
-                   Text,
-                   Extras
+                   Text

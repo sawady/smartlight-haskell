@@ -15,13 +15,13 @@ makeLenses ''PlayerData
 
 newPlayer1 :: Player
 newPlayer1 = (newEntity (PlayerData 0) "player") {
-      _pos = (20 - screenSizeX `div` 2, 0)
+      _pos = (20, snd midScreen)
     , _vel = (0, 30) 
 }
 
 newPlayer2 :: Player
 newPlayer2 = (newEntity (PlayerData 0) "player") {
-    _pos = (screenSizeX `div` 2 - 20, 0) 
+    _pos = (fst screenSize - 20, snd midScreen) 
 }
 
 moveUpPlayer :: Player -> Player

@@ -2,7 +2,7 @@
 module Game where
 
 import Graphics.UI.SDL.TTF
-import Graphics.UI.SDL (Event, Event(NoEvent), Color)
+import Graphics.UI.SDL (Event, Event(NoEvent), Color, Surface)
 import Screen
 import Image
 import Text
@@ -14,6 +14,7 @@ import qualified Data.HashMap.Strict as Map
 import Control.Monad (foldM)
 import Data.Maybe (fromMaybe)
 import Data.Word
+import Draw
 
 data Game gameData = Game {
     _isRunning  :: Bool,
@@ -45,10 +46,6 @@ loadToImages n g = do
 loadImageResources :: [String] -> Game a -> IO (Game a)
 loadImageResources xs g = foldM (flip loadToImages) g xs
 
-drawImage :: Int -> Int -> String -> Game a -> IO ()
-drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
-
-
 addFont :: String -> Font -> Game a -> Game a
 addFont n fnt = over fonts (Map.insert n fnt)
 
@@ -69,15 +66,24 @@ newGameEntity g d n = (newEntity d n) {
         _bounds = uncurry (,) $ imgSize (getImage n g)
     }  
 
-drawEntity :: forall a b.
-                Getting (Entity a) b (Entity a) -> Game b -> IO ()
+drawEntity :: Getter b (Entity a) -> Game b -> IO ()
 drawEntity p g = drawEntity' (view p (view gameData g)) g
+
+drawEntityBounds ::Getter b (Entity a) -> Game b -> IO ()
+drawEntityBounds p g = drawOnScreen (rectangle (boundsRect e) (255,0,0,255)) g
+    where e = view (gameData.p) g
 
 drawEntity' :: Entity a -> Game b -> IO ()
 drawEntity' e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityName e)
 
+drawImage :: Int -> Int -> String -> Game a -> IO ()
+drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
+
 drawText :: Int -> Int -> String -> String -> Color -> Game a -> IO ()
 drawText x y text fnt c g = drawTextOnSurface x y text (getFont fnt g) c (_screenSurface (_screen g))
+
+drawOnScreen :: (Surface -> IO ()) -> Game a -> IO ()
+drawOnScreen f g = f $ view (screen.screenSurface) g
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {

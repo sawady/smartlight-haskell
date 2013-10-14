@@ -12,13 +12,16 @@ library
                    unordered-containers,
                    SDL-ttf,
                    SDL-image,
+                   SDL-gfx,
+                   SDL-mixer,
                    SDL,
                    lens,
-                   mtl
+                   mtl,
+                   transformers
+
   ghc-options:      -Wall
   exposed-modules:  SmartLight
-  hs-source-dirs:   
-                    src
+  hs-source-dirs:   src
   other-modules:    
                    Bounds,
                    Common,
@@ -29,4 +32,5 @@ library
                    GameLoop,
                    Image,
                    Screen,
-                   Text
+                   Text,
+                   Draw

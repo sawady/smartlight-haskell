@@ -79,8 +79,8 @@ drawEntity' e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityNa
 drawImage :: Int -> Int -> String -> Game a -> IO ()
 drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
 
-drawText :: Int -> Int -> String -> String -> Color -> Game a -> IO ()
-drawText x y text fnt c g = drawTextOnSurface x y text (getFont fnt g) c (_screenSurface (_screen g))
+drawText :: Show t => Int -> Int -> t -> String -> Color -> Game a -> IO ()
+drawText x y text fnt c g = drawTextOnSurface x y (show text) (getFont fnt g) c (_screenSurface (_screen g))
 
 drawOnScreen :: (Surface -> IO ()) -> Game a -> IO ()
 drawOnScreen f g = f $ view (screen.screenSurface) g

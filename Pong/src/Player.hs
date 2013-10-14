@@ -13,14 +13,22 @@ data PlayerData = PlayerData {
 
 makeLenses ''PlayerData
 
+newPlayerData :: PlayerData
+newPlayerData = PlayerData 0
+
+newPlayer :: Player
+newPlayer = (newEntity newPlayerData "player") {
+      _vel = (0, 30)
+    , _bounds = (16,75) 
+}
+
 newPlayer1 :: Player
-newPlayer1 = (newEntity (PlayerData 0) "player") {
+newPlayer1 = newPlayer {
       _pos = (20, snd midScreen)
-    , _vel = (0, 30) 
 }
 
 newPlayer2 :: Player
-newPlayer2 = (newEntity (PlayerData 0) "player") {
+newPlayer2 = newPlayer {
     _pos = (fst screenSize - 20, snd midScreen) 
 }
 

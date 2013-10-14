@@ -9,6 +9,7 @@ newBall :: Ball
 newBall = (newVoidEntity "ball") {
     _pos = midScreen 
   , _vel = (3, 3)
+  , _bounds = (23,23)
 }
 
 moveBall :: Ball -> Ball

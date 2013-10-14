@@ -8,7 +8,7 @@ compose2 = (.) . (.)
 extendsM :: Monad m => (t -> c -> m c) -> t -> t -> c -> m c
 extendsM method g h = method g >=> method h
 
-extendsM_ :: Monad m => (t -> c -> m ()) -> t -> t -> c -> m ()
+extendsM_ :: Monad m => (t -> t1 -> m b) -> t -> t -> t1 -> m b
 extendsM_ method g h e = method g e >> method h e
 
 extends :: (t -> c -> c) -> t -> t -> c -> c

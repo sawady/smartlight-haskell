@@ -5,8 +5,9 @@ import Bounds
 import Common
 import Control.Lens.TH
 import Control.Lens
-import Extras
 import Graphics.UI.SDL (Rect(Rect))
+import Control.Monad.Trans.State
+import Control.Monad(when)
 
 data Edge = TopEdge | BottomEdge | LeftEdge | RightEdge
 
@@ -32,53 +33,78 @@ newEntity d n = Entity {
     , _entityData = d
 }
 
-velAddX :: Entity a -> Entity a
-velAddX e = over (pos._x) (+ view (vel._x) e) e
+velAddX :: Procedure (Entity a)
+velAddX = do
+    e <- get
+    pos._x += view (vel._x) e
 
-velAddY :: Entity a -> Entity a
-velAddY e = over (pos._y) (+ view (vel._y) e) e
+velAddY :: Procedure (Entity a)
+velAddY = do
+    e <- get
+    pos._y += view (vel._y) e
 
-velAdd :: Entity a -> Entity a
-velAdd e = velAddX . velAddY $ e
+velAdd :: Procedure (Entity a)
+velAdd = do
+    velAddX
+    velAddY
+    
+velSubX :: Procedure (Entity a)
+velSubX = do
+    e <- get 
+    pos._x -= view (vel._x) e    
 
-velSubY :: Entity a -> Entity a
-velSubY e = over (pos._y) (\x -> x - view (vel._y) e) e
+velSubY :: Procedure (Entity a)
+velSubY = do
+    e <- get
+    pos._y -= view (vel._y) e
 
-velSubX :: Entity a -> Entity a
-velSubX e = over (pos._x) (\x -> x - view (vel._x) e) e
+velSub :: Procedure (Entity a)
+velSub = do
+    velSubX
+    velSubY
 
-velSub :: Entity a -> Entity a
-velSub e = velSubX . velSubY $ e
+changeDir :: Setter' Vel Int -> Procedure (Entity a)
+changeDir axis = vel . axis *= (-1)
 
-changeDir :: Setter' Vel Int -> Entity a -> Entity a
-changeDir axis = over (vel . axis) (* (-1))
+bounceOnCollide :: Entity b -> Procedure (Entity a)
+bounceOnCollide e2 = do
+    e1 <- get
+    when (collideWith e1 e2) $ do
+         bounceX
+         bounceY
+         
 
-bounceOnCollide :: Entity b -> Entity a -> Entity a
-bounceOnCollide e2 e1 = on (collideWith e1 e2) (bounceY . bounceX) e1
+bounceXOnCollide :: Entity b -> Procedure (Entity a)
+bounceXOnCollide e2 = do
+    e1 <- get
+    when (collideWith e1 e2) bounceX
 
-bounceXOnCollide :: Entity b -> Entity a -> Entity a
-bounceXOnCollide e2 e1 = on (collideWith e1 e2) bounceX e1
+bounceYOnCollide :: Entity b -> Procedure (Entity a)
+bounceYOnCollide e2 = do
+    e1 <- get
+    when (collideWith e1 e2) bounceY
 
-bounceYOnCollide :: Entity b -> Entity a -> Entity a
-bounceYOnCollide e2 e1 = on (collideWith e1 e2) bounceY e1
+bounceX :: Procedure (Entity a)
+bounceX = do
+    changeDir _x
+    velAddX
 
-bounceX :: Entity a -> Entity a
-bounceX = velAddX . changeDir _x
+bounceY :: Procedure (Entity a)
+bounceY = do
+    changeDir _y
+    velAddY
 
-bounceY :: Entity a -> Entity a
-bounceY = velAddY . changeDir _y
+bounceOnEdgeX :: Int -> Procedure (Entity a)
+bounceOnEdgeX screenSizeX = do
+    e <- get
+    when (onEdgeX screenSizeX e) 
+         bounceX
 
-bounceOnEdgeX :: Int -> Entity a -> Entity a
-bounceOnEdgeX screenSizeX b = 
-    if onEdgeX screenSizeX b 
-       then bounceX b
-       else b
-
-bounceOnEdgeY :: Int -> Entity a -> Entity a
-bounceOnEdgeY screenSizeY b = 
-    if onEdgeY screenSizeY b  
-       then bounceY b
-       else b
+bounceOnEdgeY :: Int -> Procedure (Entity a)
+bounceOnEdgeY screenSizeY = do
+    e <- get
+    when (onEdgeY screenSizeY e) 
+         bounceY
        
 onEdgeX :: Int -> Entity a -> Bool
 onEdgeX screenSizeX e = x < 0 || x > screenSizeX

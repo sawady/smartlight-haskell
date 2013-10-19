@@ -11,7 +11,9 @@ import Control.Monad (liftM, when, (>=>))
 import Control.Exception (catch, IOException)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Reader
 import Extras
+import Common
 
 -- init
 -- while(running) {    
@@ -20,7 +22,7 @@ import Extras
 -- }
 -- cleanup
 
-type GameState a = StateT (Game a) IO ()
+type GameState  a = Procedure (Game a)
 
 data GameLoop a = GameLoop {
     _onInit       :: Game a -> IO (Game a),
@@ -105,16 +107,6 @@ controlFrameRate = do
         (do
             ticks2 <- SDL.getTicks
             SDL.delay (( 1000 `div` 10 ) - ticks2))
-            
---mainLoop :: GameLoop a -> Game a -> IO (Game a)
---mainLoop gl g = if _isRunning g then
---  do 
---     newG <- events g
---     let newG' = _byDefault gl newG
---     _onRender gl newG'
---     controlFrameRate
---     mainLoop gl newG'
---  else return g            
             
 mainLoop :: GameLoop a -> GameState a
 mainLoop gl = 

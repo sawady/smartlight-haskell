@@ -2,6 +2,9 @@
 module Common where
 
 import Control.Lens
+import Control.Monad.Trans.State
+
+type Procedure a = StateT a IO ()
 
 type Pos = (Int,Int)
 type Vel = (Int,Int)

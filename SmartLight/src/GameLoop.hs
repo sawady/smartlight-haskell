@@ -11,9 +11,9 @@ import Control.Monad (liftM, when, (>=>))
 import Control.Exception (catch, IOException)
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
-import Control.Monad.Trans.Reader
 import Extras
 import Common
+import Data.Word
 
 -- init
 -- while(running) {    
@@ -100,24 +100,24 @@ loadingImages xs = addInit (loadImageResources xs)
 loadingFonts :: [(String,Int)] -> GameLoop a -> GameLoop a
 loadingFonts xs = addInit (loadFontResources xs)
 
-controlFrameRate :: IO ()
-controlFrameRate = do
-     ticks1 <- SDL.getTicks
-     when (ticks1 < 1000 `div` 10)
-        (do
-            ticks2 <- SDL.getTicks
-            SDL.delay (( 1000 `div` 10 ) - ticks2))
+controlFrameRate :: Game a -> Word32 -> IO ()
+controlFrameRate g ticks1 = do
+    let allowed = div 1000 (_fps g)
+    when (ticks1 < allowed) $ do 
+        ticks2 <- SDL.getTicks
+        SDL.delay $ allowed - ticks2
             
 mainLoop :: GameLoop a -> GameState a
 mainLoop gl = 
     do
       g <- get
       when (_isRunning g) $ do 
+          ticks <- lift SDL.getTicks
           events
           _byDefault gl
           g' <- get
           lift (_onRender gl g') 
-          lift controlFrameRate
+          lift $ controlFrameRate g' ticks 
           mainLoop gl            
 
   where

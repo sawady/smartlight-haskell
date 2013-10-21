@@ -9,11 +9,9 @@ import Graphics.UI.SDL (Rect(Rect))
 import Control.Monad.Trans.State
 import Control.Monad(when)
 
-data Edge = TopEdge | BottomEdge | LeftEdge | RightEdge
-
 data Entity a = Entity {
       _entityName   :: String
-    , _pos          :: Pos
+    , _pos          :: Pos -- the position is the center of the entity
     , _vel          :: Vel
     , _bounds       :: Bounds
     , _entityData   :: a
@@ -107,8 +105,13 @@ bounceOnEdgeY screenSizeY = do
          bounceY
        
 onEdgeX :: Int -> Entity a -> Bool
-onEdgeX screenSizeX e = x < 0 || x > screenSizeX
-    where x = view (pos . _x) e
+onEdgeX screenSizeX e = onLeftEdge e || onRightEdge screenSizeX e
+    
+onLeftEdge :: Entity a -> Bool
+onLeftEdge e  = view (pos . _x) e < 0   
+
+onRightEdge :: Int -> Entity a -> Bool
+onRightEdge screenSizeX e = view (pos . _x) e > screenSizeX
                
 onEdgeY :: Int -> Entity a -> Bool
 onEdgeY screenSizeY e = y < 0 || y > screenSizeY
@@ -116,7 +119,7 @@ onEdgeY screenSizeY e = y < 0 || y > screenSizeY
     
 boundPos :: Entity a -> Pos
 boundPos e = boundsOrigin (view pos e) (view bounds e)
-    where boundsOrigin (x,y) (w,h) = (x - div w 2, y - div h 2)
+    where boundsOrigin (x,y) (w,h) = (x - div w 2, y - div h 2) -- because the position is in the center of the entity
 
 boundsRect :: Entity a -> Rect
 boundsRect e = Rect x y (x+w) (y+h)
@@ -124,6 +127,6 @@ boundsRect e = Rect x y (x+w) (y+h)
           (w,h) = view bounds e
     
 collideWith :: Entity a -> Entity b -> Bool
-collideWith e1 e2 = collideWithBounds (boundPos e1) b1 (boundPos e2) b2
+collideWith e1 e2 = collide (boundPos e1) b1 (boundPos e2) b2
     where b1 = view bounds e1
           b2 = view bounds e2

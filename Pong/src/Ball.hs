@@ -12,5 +12,5 @@ newBall = (newVoidEntity "ball") {
   , _bounds = (23,23)
 }
 
-moveBall :: Ball -> Ball
-moveBall = velAdd . bounceOnEdgeX (fst screenSize) . bounceOnEdgeY (snd screenSize)
+moveBall :: Procedure Ball
+moveBall = velAdd

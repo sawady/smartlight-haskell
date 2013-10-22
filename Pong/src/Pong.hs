@@ -7,6 +7,7 @@ import Control.Lens
 import CommonPong
 import Player
 import Ball
+import Control.Monad (when)
 
 data Pong = Pong {
       _player1 :: Player
@@ -19,41 +20,53 @@ makeLenses ''Pong
 newPong :: Pong
 newPong = Pong newPlayer1 newPlayer2 newBall
 
-onCollideWithPlayer :: Getter Pong Player -> Pong -> Pong
-onCollideWithPlayer p g = over ball (bounceXOnCollide pl) g
-    where pl = view p g
+bounceBallOnEdges :: Procedure Pong
+bounceBallOnEdges = do
+    zoom ball $ do
+        bounceOnEdgeX (fst screenSize)
+        bounceOnEdgeY (snd screenSize)
+
+onCollideWithPlayer :: Getter Pong Player -> Procedure Pong
+onCollideWithPlayer playerLens = do
+    g <- get
+    zoom ball (bounceXOnCollide (view playerLens g))
                                 
-ballCollision :: Pong -> Pong
-ballCollision = onCollideWithPlayer player1 . onCollideWithPlayer player2 
+ballCollision :: Procedure Pong
+ballCollision = do
+    onCollideWithPlayer player1
+    onCollideWithPlayer player2 
+    
+addPlayer1Point :: Procedure Pong
+addPlayer1Point = addPlayerPoint player1 cond    
+    where 
+        cond g = view (ball . pos . _x) g >= fst screenSize
 
-addPlayer1Point :: Pong -> Pong
-addPlayer1Point g = addPlayerPoint player1 cond g
-    where cond = view (ball . pos . _x) g >= fst screenSize
+addPlayer2Point :: Procedure Pong
+addPlayer2Point = addPlayerPoint player2 cond
+    where 
+        cond g = view (ball . pos . _x) g <= 0      
 
-addPlayer2Point :: Pong -> Pong
-addPlayer2Point g = addPlayerPoint player2 cond g 
-    where cond = view (ball . pos . _x) g <= 0      
+addPlayerPoint :: Setter' Pong Player -> (Pong -> Bool) -> Procedure Pong
+addPlayerPoint pl p = do
+    g <- get 
+    when (p g) $ do
+        pl.entityData.playerPoints += 1
 
-addPlayerPoint :: Setter' Pong Player -> Bool -> Pong -> Pong
-addPlayerPoint pl b = over (pl.entityData.playerPoints) addPoints
-    where addPoints x = if b
-                           then x + 1
-                           else x
-                               
 pongByDefault :: GameState Pong
 pongByDefault = do
     zoom gameData $ do
-        modify ballCollision
-        ball %= moveBall 
-        modify addPlayer1Point 
-        modify addPlayer2Point
+        bounceBallOnEdges
+        zoom ball moveBall
+        ballCollision 
+        addPlayer1Point 
+        addPlayer2Point
 
 pongEventLogic :: GameState Pong
 pongEventLogic = do
     g <- get
     zoom gameData $ 
-      if | isKeyDown SDLK_DOWN g -> modify (over player1 moveDownPlayer) 
-         | isKeyDown SDLK_UP g   -> player1 %= moveUpPlayer
+      if | isKeyDown SDLK_DOWN g -> zoom player1 moveDownPlayer 
+         | isKeyDown SDLK_UP g   -> zoom player1 moveUpPlayer
          | otherwise             -> player2 . pos . _y .= view (mousePos . _y) g
                  
 drawPongScore :: Int -> Int -> Getter Pong Player -> Game Pong -> IO ()

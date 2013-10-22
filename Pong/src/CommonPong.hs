@@ -1,8 +1,11 @@
 module CommonPong where
 
+import Control.Lens
+
 screenSize :: (Int, Int)
 screenSize = (640, 480)
 
 midScreen :: (Int, Int)
-midScreen = let (x,y) = screenSize
-                in (x `div` 2, y `div` 2)  
+midScreen = over _1 (`div` 2) $ 
+            over _2 (`div` 2)  
+            screenSize  

@@ -21,11 +21,10 @@ data Game gameData = Game {
     _mousePos   :: (Int,Int),
     _event      :: Event,
     _fps        :: Word32,
-    _lastUpdateTime :: Word32,
-    _screen         :: Screen,
-    _images         :: Map.HashMap String Image,
-    _fonts          :: Map.HashMap String Font,
-    _gameData       :: gameData
+    _screen     :: Screen,
+    _images     :: Map.HashMap String Image,
+    _fonts      :: Map.HashMap String Font,
+    _gameData   :: gameData
 }
 
 makeLenses ''Game
@@ -88,7 +87,6 @@ drawOnScreen f g = f $ view (screen.screenSurface) g
 newGame :: Screen -> a -> Game a
 newGame s g = Game {
       _screen         = s
-    , _lastUpdateTime = 0
     , _mousePos       = (0,0)
     , _event          = NoEvent  
     , _isRunning      = True

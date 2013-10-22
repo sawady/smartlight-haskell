@@ -32,8 +32,8 @@ newPlayer2 = newPlayer {
     _pos = (fst screenSize - 20, snd midScreen) 
 }
 
-moveUpPlayer :: Player -> Player
+moveUpPlayer :: Procedure Player
 moveUpPlayer = velSub
 
-moveDownPlayer :: Player -> Player
+moveDownPlayer :: Procedure Player
 moveDownPlayer = velAdd

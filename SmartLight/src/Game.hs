@@ -18,7 +18,7 @@ import Draw
 
 data Game gameData = Game {
     _isRunning  :: Bool,
-    _mousePos   :: (Int,Int),
+    _mousePos   :: Pos,
     _event      :: Event,
     _fps        :: Word32,
     _screen     :: Screen,
@@ -60,7 +60,7 @@ loadFonts :: [(String,Int)] -> Game a -> IO (Game a)
 loadFonts xs g = foldM (flip . uncurry $ loadFont) g xs
 
 drawEntity :: Entity a -> Game b -> IO ()
-drawEntity e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityName e)
+drawEntity e = drawImage (view pos e) (view entityName e)
 
 drawEntities :: [Entity ()] -> Game a -> IO ()
 drawEntities es g = mapM_ (`drawEntity` g) es 
@@ -78,11 +78,11 @@ drawEntityBounds e = drawOnScreen (rectangle (boundsRect e) (255, 0, 0, 255))
 drawEntitiesBounds :: [Entity ()] -> Game a -> IO ()
 drawEntitiesBounds es g = mapM_ (`drawEntityBounds` g) es     
 
-drawImage :: Int -> Int -> String -> Game a -> IO ()
-drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
+drawImage :: Pos -> String -> Game a -> IO ()
+drawImage p img g = drawOnScreen (drawImageOnSurface p (getImage img g)) g
 
-drawText :: Show t => Int -> Int -> t -> String -> Color -> Game a -> IO ()
-drawText x y text fnt c g = drawTextOnSurface x y (show text) (getFont fnt g) c (_screenSurface (_screen g))
+drawText :: Show t => Pos -> t -> String -> Color -> Game a -> IO ()
+drawText p text fnt c g = drawOnScreen (drawTextOnSurface p (show text) (getFont fnt g) c) g
 
 drawOnScreen :: (Surface -> IO ()) -> Game a -> IO ()
 drawOnScreen f g = f $ view (screen.screenSurface) g

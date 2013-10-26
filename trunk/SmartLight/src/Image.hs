@@ -2,6 +2,7 @@ module Image where
 
 import Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Image as SDLImage
+import Common
 
 data Image = Image {
     _surface        :: Surface,
@@ -36,12 +37,13 @@ newPartialImage img r = img {
        , _center  = (rectW r `div` 2, rectH r `div` 2)
 }
 
-drawImageOnSurface :: Int -> Int -> Image -> Surface -> IO ()
-drawImageOnSurface x y source dest = do
+drawImageOnSurface :: Pos -> Image -> Surface -> IO ()
+drawImageOnSurface p source dest = do
        _ <- SDL.blitSurface (_surface source) (Just $ _rect source) dest (Just rect)
        return ()
         
        where
          centerX = fst $ _center source
          centerY = snd $ _center source
-         rect = Rect (x - centerX) (y - centerY) 0 0
+         rect    = Rect (x - centerX) (y - centerY) 0 0
+         (x,y)   = p

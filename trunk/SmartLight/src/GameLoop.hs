@@ -95,10 +95,10 @@ simpleGameLoop df l d = newGameLoop $ defaultGameLoop {
 }
 
 loadingImages :: [String] -> GameLoop a -> GameLoop a
-loadingImages xs = addInit (loadImageResources xs)
+loadingImages xs = addInit (loadImages xs)
 
 loadingFonts :: [(String,Int)] -> GameLoop a -> GameLoop a
-loadingFonts xs = addInit (loadFontResources xs)
+loadingFonts xs = addInit (loadFonts xs)
 
 controlFrameRate :: Game a -> Word32 -> IO ()
 controlFrameRate g ticks1 = do

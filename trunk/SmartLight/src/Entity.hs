@@ -19,9 +19,6 @@ data Entity a = Entity {
 
 makeLenses ''Entity
 
-newVoidEntity :: String -> Entity ()
-newVoidEntity = newEntity ()
-
 newEntity :: a -> String -> Entity a
 newEntity d n = Entity {
       _entityName = n
@@ -30,6 +27,14 @@ newEntity d n = Entity {
     , _bounds     = (0,0)
     , _entityData = d
 }
+
+newVoidEntity :: String -> Entity ()
+newVoidEntity = newEntity ()
+
+toVoidEntity :: Entity a -> Entity ()
+toVoidEntity = set entityData ()
+
+--------------------------- BEHAVIOR
 
 velAddX :: Procedure (Entity a)
 velAddX = do
@@ -95,17 +100,17 @@ bounceY = do
 bounceOnEdgeX :: Int -> Procedure (Entity a)
 bounceOnEdgeX screenSizeX = do
     e <- get
-    when (onEdgeX screenSizeX e) 
+    when (onAnyHorizontalEdge screenSizeX e) 
          bounceX
 
 bounceOnEdgeY :: Int -> Procedure (Entity a)
 bounceOnEdgeY screenSizeY = do
     e <- get
-    when (onEdgeY screenSizeY e) 
+    when (onAnyVerticalEdge screenSizeY e) 
          bounceY
        
-onEdgeX :: Int -> Entity a -> Bool
-onEdgeX screenSizeX e = onLeftEdge e || onRightEdge screenSizeX e
+onAnyHorizontalEdge :: Int -> Entity a -> Bool
+onAnyHorizontalEdge screenSizeX e = onLeftEdge e || onRightEdge screenSizeX e
     
 onLeftEdge :: Entity a -> Bool
 onLeftEdge e  = view (pos . _x) e < 0   
@@ -113,9 +118,14 @@ onLeftEdge e  = view (pos . _x) e < 0
 onRightEdge :: Int -> Entity a -> Bool
 onRightEdge screenSizeX e = view (pos . _x) e > screenSizeX
                
-onEdgeY :: Int -> Entity a -> Bool
-onEdgeY screenSizeY e = y < 0 || y > screenSizeY
-    where y = view (pos . _y) e
+onAnyVerticalEdge :: Int -> Entity a -> Bool
+onAnyVerticalEdge screenSizeY e = onTopEdge e || onBottomEdge screenSizeY e
+    
+onTopEdge :: Entity a -> Bool
+onTopEdge e = view (pos . _y) e < 0
+
+onBottomEdge :: Int -> Entity a -> Bool
+onBottomEdge screenSizeY e = view (pos . _y) e > screenSizeY
     
 boundPos :: Entity a -> Pos
 boundPos e = boundsOrigin (view pos e) (view bounds e)
@@ -127,6 +137,6 @@ boundsRect e = Rect x y (x+w) (y+h)
           (w,h) = view bounds e
     
 collideWith :: Entity a -> Entity b -> Bool
-collideWith e1 e2 = collide (boundPos e1) b1 (boundPos e2) b2
+collideWith e1 e2 = collide (boundPos e1, b1) (boundPos e2, b2)
     where b1 = view bounds e1
           b2 = view bounds e2

@@ -36,14 +36,13 @@ getImage :: String -> Game a -> Image
 getImage n g = fromMaybe (error $ "Image " ++ n ++ " not found") $
     Map.lookup n (view images g)
     
-loadToImages :: String -> Game a -> IO (Game a)
-loadToImages n g = do
-    img <- loadImage n
-    r   <- getArea img
-    return $ addImage n (newImage img r) g    
+loadImage :: String -> Game a -> IO (Game a)
+loadImage n g = do
+    img <- loadImageResource n
+    return $ addImage n img g    
     
-loadImageResources :: [String] -> Game a -> IO (Game a)
-loadImageResources xs g = foldM (flip loadToImages) g xs
+loadImages :: [String] -> Game a -> IO (Game a)
+loadImages xs g = foldM (flip loadImage) g xs
 
 addFont :: String -> Font -> Game a -> Game a
 addFont n fnt = over fonts (Map.insert n fnt)
@@ -52,28 +51,32 @@ getFont :: String -> Game a -> Font
 getFont n g = fromMaybe (error $ "Font " ++ n ++ " not found") $
     Map.lookup n (view fonts g)
     
-loadToFonts :: String -> Int -> Game a -> IO (Game a)
-loadToFonts n s g = do
-    fnt <- loadFont n s
+loadFont :: String -> Int -> Game a -> IO (Game a)
+loadFont n s g = do
+    fnt <- loadFontResource n s
     return $ addFont n fnt g
     
-loadFontResources :: [(String,Int)] -> Game a -> IO (Game a)
-loadFontResources xs g = foldM (flip . uncurry $ loadToFonts) g xs
+loadFonts :: [(String,Int)] -> Game a -> IO (Game a)
+loadFonts xs g = foldM (flip . uncurry $ loadFont) g xs
 
-newGameEntity :: Game a -> b -> String -> Entity b
-newGameEntity g d n = (newEntity d n) {
-        _bounds = uncurry (,) $ imgSize (getImage n g)
-    }  
+drawEntity :: Entity a -> Game b -> IO ()
+drawEntity e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityName e)
 
-drawEntity :: Getter b (Entity a) -> Game b -> IO ()
-drawEntity p g = drawEntity' (view p (view gameData g)) g
+drawEntities :: [Entity ()] -> Game a -> IO ()
+drawEntities es g = mapM_ (`drawEntity` g) es 
 
-drawEntityBounds ::Getter b (Entity a) -> Game b -> IO ()
-drawEntityBounds p g = drawOnScreen (rectangle (boundsRect e) (255,0,0,255)) g
+drawGameEntity :: Getter b (Entity a) -> Game b -> IO ()
+drawGameEntity p g = drawEntity (view p (view gameData g)) g
+
+drawGameEntityBounds :: Getter b (Entity a) -> Game b -> IO ()
+drawGameEntityBounds p g = drawEntityBounds e g
     where e = view (gameData.p) g
-
-drawEntity' :: Entity a -> Game b -> IO ()
-drawEntity' e = drawImage (view (pos . _x) e) (view (pos . _y) e) (view entityName e)
+    
+drawEntityBounds :: Entity a -> Game b -> IO () 
+drawEntityBounds e = drawOnScreen (rectangle (boundsRect e) (255, 0, 0, 255))
+    
+drawEntitiesBounds :: [Entity ()] -> Game a -> IO ()
+drawEntitiesBounds es g = mapM_ (`drawEntityBounds` g) es     
 
 drawImage :: Int -> Int -> String -> Game a -> IO ()
 drawImage x y img g = drawImageOnSurface x y (getImage img g) (_screenSurface (_screen g))
@@ -83,6 +86,9 @@ drawText x y text fnt c g = drawTextOnSurface x y (show text) (getFont fnt g) c 
 
 drawOnScreen :: (Surface -> IO ()) -> Game a -> IO ()
 drawOnScreen f g = f $ view (screen.screenSurface) g
+
+toVoidGameEntity ::  Getter b (Entity a) -> Game b -> Entity ()
+toVoidGameEntity p g = toVoidEntity $ view (gameData.p) g
 
 newGame :: Screen -> a -> Game a
 newGame s g = Game {

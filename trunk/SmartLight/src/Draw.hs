@@ -3,6 +3,7 @@ module Draw where
 import Graphics.UI.SDL as SDL
 import Graphics.UI.SDL.Primitives as SDL
 import Data.Bits
+import Control.Monad(void)
 
 import Common
 type RGBA = (Int,Int,Int,Int)
@@ -14,11 +15,6 @@ toPixel (r,g,b,a) = Pixel $ shiftL r' 24 .|. shiftL g' 16 .|. shiftL b' 8 .|. a'
           b' = fromIntegral b
           a' = fromIntegral a
           
-void :: IO a -> IO ()
-void ac = do
-    _ <- ac
-    return ()          
-
 pixel :: Pos -> RGBA -> Surface -> IO ()
 pixel (x, y) c s = void $ SDL.pixel s (fromIntegral x) (fromIntegral y) (toPixel c)
 

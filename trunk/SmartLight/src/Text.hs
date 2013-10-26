@@ -7,8 +7,8 @@ loadFontWithPath :: FilePath -> FilePath -> Int -> IO Font
 loadFontWithPath file srcFolder
   = openFont (srcFolder ++ "/" ++ file ++ ".ttf")
 
-loadFont :: FilePath -> Int -> IO Font
-loadFont file = loadFontWithPath file "./resources"
+loadFontResource :: FilePath -> Int -> IO Font
+loadFontResource file = loadFontWithPath file "./resources"
 
 drawTextOnSurface :: Int -> Int -> String -> Font -> Color -> Surface -> IO ()
 drawTextOnSurface x y text font c dest = do

@@ -100,9 +100,9 @@ loadingImages xs = addInit (loadImages xs)
 loadingFonts :: [(String,Int)] -> GameLoop a -> GameLoop a
 loadingFonts xs = addInit (loadFonts xs)
 
-controlFrameRate :: Game a -> Word32 -> IO ()
-controlFrameRate g ticks1 = do
-    let allowed = div 1000 (_fps g)
+controlFrameRate :: Word32 -> Word32 -> IO ()
+controlFrameRate fps' ticks1 = do
+    let allowed = div 1000 fps'
     when (ticks1 < allowed) $ do 
         ticks2 <- SDL.getTicks
         SDL.delay $ allowed - ticks2
@@ -117,7 +117,7 @@ mainLoop gl =
           _byDefault gl
           g' <- get
           lift (_onRender gl g') 
-          lift $ controlFrameRate g' ticks 
+          lift $ controlFrameRate (_fps g') ticks 
           mainLoop gl            
 
   where

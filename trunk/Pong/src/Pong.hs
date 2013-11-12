@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, RankNTypes, MultiWayIf #-}
+{-# LANGUAGE TemplateHaskell, Rank2Types, MultiWayIf #-}
 module Pong where
 
 import SmartLight
@@ -20,6 +20,13 @@ makeLenses ''Pong
 newPong :: Pong
 newPong = Pong newPlayer1 newPlayer2 newBall
 
+pongEntities :: Game Pong -> [Entity ()]
+pongEntities g = [
+                   toVoidGameEntity player1 g
+                 , toVoidGameEntity player2 g 
+                 , toVoidGameEntity ball g
+                 ]
+
 bounceBallOnEdges :: Procedure Pong
 bounceBallOnEdges = do
     zoom ball $ do
@@ -29,7 +36,10 @@ bounceBallOnEdges = do
 onCollideWithPlayer :: Getter Pong Player -> Procedure Pong
 onCollideWithPlayer playerLens = do
     g <- get
-    zoom ball (bounceXOnCollide (view playerLens g))
+    let pl = view playerLens g
+    zoom ball $ do 
+        bounceXOnCollide pl
+        bounceYOnCollide pl
                                 
 ballCollision :: Procedure Pong
 ballCollision = do
@@ -69,20 +79,18 @@ pongEventLogic = do
          | isKeyDown SDLK_UP g   -> zoom player1 moveUpPlayer
          | otherwise             -> player2 . pos . _y .= view (mousePos . _y) g
                  
-drawPongScore :: Int -> Int -> Getter Pong Player -> Game Pong -> IO ()
-drawPongScore x y pl g = drawText x y (view (gameData.pl.entityData.playerPoints) g) "scoreFont" (Color 255 255 255) g     
+drawPongScore :: Pos -> Getter Pong Player -> Game Pong -> IO ()
+drawPongScore p pl g = drawText p (view (gameData.pl.entityData.playerPoints) g) "scoreFont" (Color 255 255 255) g     
 
 pongRender :: Game Pong -> IO ()
 pongRender g = do
-    drawImage midX midY "table" g
-    drawEntity player1 g
-    drawEntity player2 g 
-    drawEntity ball g    
-    drawPongScore (-46) 100 player1 g 
-    drawPongScore 15 100 player2 g
-    
-    where midX = fst midScreen
-          midY = snd midScreen  
+    drawImage midScreen "table" g
+    drawGameEntity player1 g
+    drawGameEntity player2 g 
+    drawGameEntity ball g    
+    drawPongScore (-46, 100) player1 g 
+    drawPongScore (15, 100)  player2 g
+    drawEntitiesBounds (pongEntities g) g
     
 pongLoop :: GameLoop Pong
 pongLoop = 
